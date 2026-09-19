@@ -8,44 +8,59 @@ Detected tool/system history, presented as **the story of your journey** — "yo
 
 ## The three pillars of value
 
-Three real value props came out of the research, sequenced deliberately — not three separate ideas, three layers on the same data.
+Three real value props, sequenced deliberately — not three separate ideas, three layers on the same data.
 
-**1. Inventory — solving tool amnesia (primary, build first).** Your environment accumulates invisibly over years: CLI tools, apps, whole systems you upgraded through. There's no trustworthy record of what you had, why, or when you moved on. This is the base layer everything else stands on.
+**1. Inventory — solving tool amnesia (primary, build first).** No trustworthy record exists today of what you had, why, or when you moved on. This is the base layer everything else stands on.
 
-**2. Sharing — an always-current "what's your stack" (secondary, same data).** A README badge / portfolio segment generated from your own manifest, no shared infra needed. Real itch (people already hand-maintain tech-stack cards today), weaker engagement evidence on its own — but framed as *your journey*, not a static list, it's structurally the same hook as Spotify Wrapped or GitHub Wrapped, which is what makes it worth sharing at all.
+**2. Sharing — an always-current "what's your stack" (secondary, same data).** A README badge / portfolio segment, no shared infra needed. Framed as *your journey*, not a static list — the same hook as Spotify Wrapped or GitHub Wrapped, which is what makes it worth sharing at all.
 
-**3. Credibility — real usage as a hiring/expertise signal (parked, not abandoned).** The same evidence, positioned later as proof of real tool experience — analogous to what Git AI does for AI-code attribution. Deliberately sequenced last: it needs pillar 1 to have real adoption first (no populated profiles, no reason for an employer to look), the privacy/allowlist model and OpenTimestamps tamper-resistance are already designed for it, and there's an honest open doubt about whether usage frequency still proves skill in the AI-assisted-coding era. Not cut — parked until the ground under it stops shifting.
+**3. Credibility — real usage as a hiring/expertise signal (parked, not abandoned).** The same evidence, later positioned as proof of real tool experience — analogous to Git AI for code attribution. Sequenced last on purpose: needs pillar 1's adoption first, and there's an honest open doubt about whether usage frequency still proves skill in the AI-assisted-coding era.
 
-## Features (with the technical detail behind each)
+## Features
 
-**1. CLI tool detection** — no manual entry, all read from existing package-manager state:
-- Homebrew formulae: Cellar `INSTALL_RECEIPT.json`, filtered to `installed_on_request` (excludes pulled-in dependencies)
-- Homebrew casks: `brew info --json=v2 --installed`
-- Rust tools: `cargo install --list`
-- npm globals: read `bin` fields from installed global packages
+**Detection**
+- CLI tools — Homebrew Cellar `INSTALL_RECEIPT.json` (filtered to `installed_on_request`), `brew info --json=v2 --installed` for casks, `cargo install --list`, npm global `bin` fields
+- Desktop apps — `/Applications` + `~/Applications`, `Info.plist`
+- *Deferred:* browser extensions (per-extension `manifest.json` in browser profile), hardware (`system_profiler`)
+- *Idea:* remote/cloud usage capture via tmux/iTerm2 hotkey, tagged as remote-observed
 
-**2. Desktop app detection** — scan `/Applications` + `~/Applications`, read each `.app`'s `Info.plist` for name/version/bundle ID.
+**Output**
+- `manifest.json` — stable, versioned; the shared data layer every other feature reads from
 
-**3. `manifest.json` output** — a single, versioned file that's the detector's entire output, stable from day one so a future aggregator can parse any historical version. This file is the seam between detector and renderer, and the shared data layer all three pillars read from.
+**Presentation**
+- Journey/retrospective rendering, not a raw table
+- *Deferred:* simulated-desktop UI (once the detector is proven)
+- *Idea:* command-palette search overlay, grouped by job/verb, for large collections
 
-**4. Privacy gate before anything is public** — allowlist-by-source, not a denylist: tools from Homebrew core / public npm / crates.io default **visible**; tools from `.local`/`.path`/a custom Homebrew tap default **hidden** (that's where internal/proprietary tools live). Detection is automatic; publishing never is — always a manual review step.
+**Distribution / sharing**
+- GitHub README "top 5 tools" embed
+- *Idea:* Raycast snippet trigger — a keystroke expands to a shareable summary + link
 
-**5. Rendering** — reads the manifest and presents it as the journey narrative (see The pitch above), not a raw table. Serves pillars 1 and 2 directly.
+**Deployment**
+- Decentralized clone-and-point template — no server, no accounts, no database; growth by forking
 
-**6. Deployment: decentralized, clone-and-point** — no server, no accounts, no database. A template site (this repo) is cloned per person and pointed at their own `manifest.json` URL (their own repo/gist). Growth by forking, not sign-up.
+**Privacy / safety**
+- Allowlist-by-source publishing gate — public-registry tools visible by default, `.local`/custom-tap tools hidden by default
+- Manual review required before anything publishes — detection is automatic, publishing never is
 
-**7. Tamper-resistance (designed for, not built yet)** — hash the manifest, anchor the hash via OpenTimestamps (free, no infra of your own). Exists so pillar 3 has a foundation whenever it's picked back up: proves data hasn't been altered since a specific point, without needing to build or trust a central authority.
+**Credibility / trust (parked)**
+- Hireable/credibility profile view — usage evidence positioned as a hiring signal
+- Tamper-resistance — hash the manifest, anchor via OpenTimestamps, so pillar 3 has a foundation whenever it's picked back up
+
+**Cross-deployment (deferred, designed for)**
+- Registry repo + scheduled GitHub Action + static leaderboard — manifest schema stays stable specifically so this stays easy later
+
+## Who benefits (value by actor)
+
+- **Author (you):** never has to remember or maintain the record manually; a personal, nostalgic artifact of your own career evolution — real even with zero viewers; an always-current portfolio badge with no upkeep; the same data can back a credibility claim later for free; full control via the manual-review gate, protecting against the exact accidental-exposure mistake that started this project.
+- **Peers / viewers** (recruiters, collaborators, potential clients, fellow devs): a genuinely interesting story, not just a utility; a real fit signal, more trustworthy than a resume line; fast discovery via the search overlay in a large collection; a specific, timestamped instance to actually ask about in conversation.
+- **Company, as a hiring employer:** a harder-to-fake signal than self-reported claims, and something to probe live — matches how real 2026 hiring already works.
+- **Company, as the author's current employer:** not a beneficiary — a party whose interests are actively protected by the privacy allowlist and mandatory review gate, without needing their permission or participation.
+- **Future self:** the nostalgia value stands alone — looking back at your own "eras" is the point, not a side effect of being seen.
+- **Other developers who clone the template:** growth is by forking, not sign-up — each adopter gets the same author-value, and an improving shared template benefits everyone using it.
+- **A future leaderboard viewer** (deferred feature): a macro view — "what's trending across everyone" — different from any single profile.
+- **Tool/library maintainers:** aggregate, anonymized adoption data richer than download counts — shows *sustained* usage over time, a signal no current metric captures well.
 
 ## Not building right now
 
-If you catch yourself building one of these, stop — it means you've drifted from what's actually locked in, not that the underlying pillar lost value:
-- Browser extension or hardware detection
-- Simulated-desktop UI (the render stays plain until the detector itself is proven)
-- Cross-deployment leaderboard/aggregator (designed for — manifest schema stays stable so this stays easy later)
-- The credibility feature itself (see pillar 3 — parked, not cut)
-
-## Why it matters (value props)
-
-- **For you, the author:** an accurate record you never had to remember or maintain yourself, that can also back up a credibility claim later without extra work now.
-- **For a viewer:** a human, nostalgic story about someone's dev journey — more interesting than a static tech-stack list, which is what makes it worth sharing at all.
-- **For an employer, eventually:** a specific, timestamped, hard-to-fake instance to ask about in an interview — feeding a real conversation, not replacing one.
+If you catch yourself starting one of the deferred/idea items above as if it were core scope, stop — it means you've drifted, not that the pillar lost value. The credibility feature itself is the biggest one to watch: parked, not cut.
