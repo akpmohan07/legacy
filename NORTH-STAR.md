@@ -4,15 +4,11 @@ One page, read this when drifting. Extracted from `IDEATION.md` and `research-lo
 
 ## The pitch
 
-A nostalgic, always-current record of the tools and systems you've used across your career — not a live inventory dashboard, a "Wrapped"-style retrospective of your journey.
+Detected tool/system history, presented as **the story of your journey** — "you used Docker for 3 years before switching to Podman" — instead of a live dashboard of what's currently installed. That distinction is why the name is Legacy, not a cosmetic choice.
 
 ## The problem (why this exists)
 
 **Tool amnesia.** Your environment accumulates invisibly over years — CLI tools, apps, whole systems you've upgraded through — and there's no trustworthy record of what you had, why, or when you moved on.
-
-## The core idea
-
-Present detected tool/system history as **a story of your journey**, not a current-state snapshot. "You used Docker for 3 years before switching to Podman" beats "here are your installed tools." This is *why* the name is Legacy, not a cosmetic choice.
 
 ## Features (with the technical detail behind each)
 
@@ -28,7 +24,7 @@ Present detected tool/system history as **a story of your journey**, not a curre
 
 **4. Privacy gate before anything is public** — allowlist-by-source, not a denylist: tools from Homebrew core / public npm / crates.io default **visible**; tools from `.local`/`.path`/a custom Homebrew tap default **hidden** (that's where internal/proprietary tools live). Detection is automatic; publishing never is — always a manual review step.
 
-**5. Rendering** — reads the manifest and presents it as the "journey" narrative (see Core idea above), not a raw table.
+**5. Rendering** — reads the manifest and presents it as the journey narrative (see The pitch above), not a raw table.
 
 **6. Deployment: decentralized, clone-and-point** — no server, no accounts, no database. A template site (this repo) is cloned per person and pointed at their own `manifest.json` URL (their own repo/gist). Growth by forking, not sign-up.
 
