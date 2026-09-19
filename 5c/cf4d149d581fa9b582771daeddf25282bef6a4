@@ -1,0 +1,23 @@
+IDEATION.md
+  s_c00687260347fb::t_09e2d213d92843 1-187
+related-products.md
+  s_c00687260347fb::t_b35b8c31685409 1-108
+research-log.md
+  s_c00687260347fb::t_3c09954554dd0f 1-232
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5ccf4d149d581fa9b582771daeddf25282bef6a4",
+  "prompts": {},
+  "sessions": {
+    "s_c00687260347fb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "870518f6-6861-428a-8c19-a86c6d835bf9",
+        "model": "unknown"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
