@@ -1,0 +1,19 @@
+NORTH-STAR.md
+  s_c00687260347fb::t_171853e164f916 11,13,15,17,19,21-25,27-28,30-33,35-37,39-40,42-44,46-48,50-53,55-62,64,66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "598ccadc79cd1a3520e2fe8ae4b5a9fe9792a7b8",
+  "prompts": {},
+  "sessions": {
+    "s_c00687260347fb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "870518f6-6861-428a-8c19-a86c6d835bf9",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
