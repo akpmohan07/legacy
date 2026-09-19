@@ -1,0 +1,19 @@
+NORTH-STAR.md
+  s_c00687260347fb::t_67810896b91d81 17,19-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "287a03b03670bbcd65db06a5475b1287f352101d",
+  "prompts": {},
+  "sessions": {
+    "s_c00687260347fb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "870518f6-6861-428a-8c19-a86c6d835bf9",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
