@@ -14,12 +14,23 @@ A nostalgic, always-current record of the tools and systems you've used across y
 
 Present detected tool/system history as **a story of your journey**, not a current-state snapshot. "You used Docker for 3 years before switching to Podman" beats "here are your installed tools." This is *why* the name is Legacy, not a cosmetic choice.
 
-## v1 — what it actually does
+## v1 — feature list (with the technical detail behind each)
 
-- Auto-detects CLI tools (Homebrew, cargo, npm globals) and desktop apps. Nothing manually typed.
-- Emits a stable, versioned `manifest.json`.
-- Renders as a shareable page — plain is fine for v1, simulated-desktop polish comes later.
-- Deploys decentralized: clone the template, point it at your own manifest. No server, no accounts, no database.
+**1. CLI tool detection** — no manual entry, all read from existing package-manager state:
+- Homebrew formulae: Cellar `INSTALL_RECEIPT.json`, filtered to `installed_on_request` (excludes pulled-in dependencies)
+- Homebrew casks: `brew info --json=v2 --installed`
+- Rust tools: `cargo install --list`
+- npm globals: read `bin` fields from installed global packages
+
+**2. Desktop app detection** — scan `/Applications` + `~/Applications`, read each `.app`'s `Info.plist` for name/version/bundle ID.
+
+**3. `manifest.json` output** — a single, versioned file that's the detector's entire output. Versioned from v1 so a future aggregator can parse any historical version. This file is the seam between detector and renderer — everything downstream depends on its shape being stable.
+
+**4. Privacy gate before anything is public** — allowlist-by-source, not a denylist: tools from Homebrew core / public npm / crates.io default **visible**; tools from `.local`/`.path`/a custom Homebrew tap default **hidden** (that's where internal/proprietary tools live). Detection is automatic; publishing never is — always a manual review step.
+
+**5. Rendering** — reads the manifest and presents it as the "journey" narrative (see Core idea above), not a raw table. Plain page is fine for v1; simulated-desktop UI is v1.1+.
+
+**6. Deployment: decentralized, clone-and-point** — no server, no accounts, no database. A template site (this repo) is cloned per person and pointed at their own `manifest.json` URL (their own repo/gist). Growth by forking, not sign-up.
 
 ## v1 — explicitly NOT doing yet
 
@@ -33,8 +44,3 @@ If you're building one of these, stop and check `TASKS`/the project board first 
 
 - **For you, the author:** an accurate record you never had to remember or maintain yourself.
 - **For a viewer:** a human, nostalgic story about someone's dev journey — more interesting than a static tech-stack list, which is what makes it worth sharing at all.
-
-## Hard rules (never optimize away)
-
-- Detection is fully automatic and local. **Publishing is never automatic** — always a human review step first.
-- Privacy default is allowlist-by-source: public-registry-sourced tools visible by default, `.local`/custom-tap-sourced tools hidden by default.
