@@ -1,0 +1,187 @@
+# Legacy — ideation notes
+
+Name: **Legacy** (locked 2026-09-19, superseding the earlier working name "Loadout" — see Naming below for the full reasoning trail, including why Loadout no longer fit and why Legacy won despite real collision risk).
+
+## Reframing (2026-09-19): from current-snapshot to journey-over-time
+
+The product's center of gravity shifted from "here's what I'm currently equipped with" (a live snapshot, which is what "Loadout" fit) to **a developer's whole tool/system history across career upgrades over time** — first setup, each system you outgrew, presented as a nostalgic, "Wrapped"-style retrospective rather than a static dashboard.
+
+This resolves two open weaknesses from the original design in one move:
+- **Shareability's weak-engagement problem** (originally flagged as secondary/shakier evidence) — a retrospective ("you used Docker for 3 years before switching to Podman") is structurally the same hook as Spotify Wrapped or GitHub Wrapped, which are proven to be far more shareable than a static "here's my current tools" list.
+- **The credibility signal's "does frequency still mean skill" doubt** — a multi-year, era-by-era history is harder to fake and means more than a raw invocation count from the last 30 days.
+
+Confirmed via direct search (2026-09-19) that this combination still doesn't exist: "Wrapped"-style tools (GitHub Wrapped, Git Wrapped) analyze git commit metadata, not tool/environment inventory. Codebase-history visualizers (Gource, Codebase Timeline Visualizer, Repo Visualizer, Gitlogue) animate a single repo's code evolution, not a person's tool inventory across machines/years. WakaTime (closest existing analogue, already noted below) tracks editor/language time only, no "eras" narrative. The gap holds.
+
+This reframing doesn't change v1's detection scope or build order below — those stand. It changes how the data gets *presented* (retrospective narrative, not live dashboard) and reinforces rather than replaces the original tool-amnesia problem statement.
+
+## The problem, stated plainly
+
+There are two distinct problems here, bundled together. Keep them separate — they have different evidence behind them.
+
+**Problem 1 — tool amnesia (primary, validated).** A developer's environment accumulates invisibly: CLI tools, desktop apps, browser extensions, hardware, all installed over years. There's no current, trustworthy record of what you actually have, why you installed it, or whether you still use it. Evidence: flavio's own stated reason for building `cli-tools` ("I forget the name of the tool I installed for that one job"), independently confirmed by a reply on his announcement tweet (Kevin Clark: "constantly installing and uninstalling CLI's and forgetting what I have installed and where"), and this project's own origin (an accidental `stackshare` publish made us ask "wait, what do I even have installed").
+
+**Problem 2 — no good way to show your setup (secondary, weaker evidence).** People want to answer "what's your stack" for portfolios/identity, but existing formats are either a dead manual list (`awesome-uses`/uses.tech — 9 years of one-time submissions, never revisited) or a decayed company product (StackShare). Real itch, shallow engagement — treat as a bonus payoff on the same data, not the reason this exists. If something has to be cut under time pressure, cut this side, not the detector.
+
+## Why nothing already solves this
+
+Researched and ruled out:
+- **`flaviocopes/cli-tools`** (github.com/flaviocopes/cli-tools) — solves Problem 1 well, but CLI-tools only, private (stays on your Mac, no sharing layer). Deep architecture read done separately; not depended on — we're building standalone detection for full control across categories.
+- **StackShare** — combined auto-detect + share, but for companies, and decayed as a business.
+- **`awesome-uses` / uses.tech** — solves the "declare your setup" itch but 100% manual, never auto-updates.
+- **Enterprise IT/hardware inventory tools** (ManageEngine, Spiceworks, Total Network Inventory, Kolide) — auto-detect hardware/software/extensions, but built for IT admins auditing a fleet for compliance. Wrong audience, wrong tone, not personal, not shareable-as-identity.
+- **GitHub README tech-stack tools** (`profile_stack`, `github-readme-tech-stack`) — solve a sliver of Problem 2 (a README badge) but from a manually-maintained config file, not real detected data.
+- **"Fake desktop OS" portfolio sites** (`portfolio-os`, `my-portfolio`, the dustinbrett "desktop environment in the browser" writeup, the HN "macOS GUI in React" Show HN) — this UI pattern (draggable windows, taskbar, dock, all in-browser) is an established, well-executed genre with real reference code. But every example is hand-built — the "windows" show static About/Projects content someone wrote, never a live inventory of what's actually installed. The rendering technique is de-risked; wiring *real* auto-detected data into that shell is still the open gap.
+
+Net: the specific combination — full-spectrum auto-detection (not just CLI) + personal + shareable + presented as something more compelling than a list — doesn't exist anywhere yet.
+
+## Feasibility check: is "full spectrum" actually detectable?
+
+Yes, on macOS, almost entirely without asking the user to type anything:
+- **CLI tools**: Homebrew Cellar receipts (`INSTALL_RECEIPT.json`, filtered to `installed_on_request`), `brew info --json=v2 --installed` for casks, `cargo install --list`, npm global packages via `package.json` `bin` fields. (This is the same approach `cli-tools` uses — proven to work.)
+- **Desktop apps**: `/Applications` + `~/Applications`, reading each `.app`'s `Info.plist`.
+- **Browser extensions**: Chrome/Firefox both keep a `manifest.json`-shaped file per installed extension in the browser's profile folder — same trick as npm's `package.json`.
+- **Hardware**: `system_profiler` (`SPHardwareDataType` for the Mac model, `SPUSBDataType`/`SPBluetoothDataType` for peripherals, `SPDisplaysDataType` for monitors).
+
+This is the actual differentiator versus uses.tech: everything can be auto-detected, nothing has to be manually typed.
+
+## Product decisions locked so far
+
+- **Detection: fully standalone.** Not forked from or dependent on `flaviocopes/cli-tools`. Full control, own schema, own release pace. (Tradeoff accepted knowingly: duplicates work already done well elsewhere.)
+- **v1 detection scope: CLI tools + desktop apps only.** Browser extensions and hardware are real and feasible, but deferred to v1.1 — proving the detector → data → render pipeline end-to-end matters more than category breadth on day one.
+- **Build order: detector first.** Build the scanner and the data format before the fancy renderer, even if v1's output is a plain page. De-risks the actually-novel part (cross-category detection) before investing in UI polish.
+- **Presentation: simulated desktop UI**, once the detector is solid. Reference implementations to study when we get there: `DareDev256/portfolio-os`, `Justinianus2001/my-portfolio`, [dustinbrett's writeup](https://dev.to/dustinbrett/how-i-made-a-desktop-environment-in-the-browser-15oi).
+- **Deployment: decentralized, uses.tech-style.** No hosted platform, no accounts, no database to run. A template site (maintained by the author) is cloned by each person and pointed at their own data (their own repo/gist/manifest file); it renders straight from that URL. Growth happens by forking, not by signing up.
+- **Distribution mechanic: GitHub README embed.** A "top 5 tools" badge/segment generated from a person's *own* manifest only (no shared infra needed) — same pattern as github-readme-stats.
+
+## Deferred, but designed for — cross-deployment metrics (v-later)
+
+Kept in mind while designing the system, not built now: a "top tools across everyone" leaderboard, without breaking the "no server, no accounts" model.
+
+**Mechanism when we get there:**
+1. A single lightweight registry repo (yours) holding a plain list: `[{username, dataRepoURL}, ...]`. People add themselves via PR — same low-friction mechanic that's kept `awesome-uses` alive for 9 years.
+2. A scheduled GitHub Action fetches every listed person's public `manifest.json` (plain `raw.githubusercontent.com` fetches, no auth) and computes aggregate stats.
+3. Publishes the result as a static leaderboard page — could reuse the simulated-desktop treatment ("the community's shared desktop," most common tools rendered biggest).
+
+Why this is safe to defer: it's a scheduled batch job on free GitHub Actions minutes, not a service that can go down — if it's ever abandoned, every individual person's own page keeps working since it doesn't depend on the registry. Only meaningful once there's real adoption, so: **design the manifest schema now to make this easy later (stable, versioned, publicly fetchable JSON), but don't build the aggregator until there are enough real users for a leaderboard to mean anything.**
+
+## Problem 3 — verifiable credibility signal (v-later, different audience)
+
+A third, distinct direction, sparked by comparing to [Git AI / usegitai.com](https://usegitai.com/) (a Git extension that gives engineering teams line-level, per-agent attribution of AI-generated code via Git Notes — turning "how much AI code ships" from a claim into evidence). The parallel: job descriptions demand "expertise in X," resumes claim it, nobody can verify it. The data to check it already exists on-machine — install date, invocation frequency, recency, and the sharpest signal, the human-vs-agent split already designed into `AgentHistory` ("claims Docker expertise, but 90% of invocations were Claude Code, not them").
+
+**Why it's compelling:** this is the one direction with an actual two-sided transaction/monetization shape — job seekers get provable credibility, employers get reliable signal, more successful matches create more reasons for both sides to participate. Problem 1 and 2 are single-player value with no natural network effect; this is the piece that could turn Legacy into more than a personal tool.
+
+**Why it must come last — the bootstrap problem:** a marketplace with no supply has no value for demand, and vice versa. Launching the credibility feature before Problem 1/2 has real adoption means no populated profiles for an employer to look at, and no employers looking for anyone to bother generating one for. Problem 1 isn't a cautious detour before this — it's the only mechanism that makes this reachable. This is exactly how **WakaTime** did it (see Prior art below): personal time-tracking adoption came first, with zero hiring intent; its "hireable" leaderboard only became meaningful once a large base already existed.
+
+**Go-to-market implication:** never open with "prove your skills to employers" — that framing invites exactly the self-consciousness Risk 1 names below and kills adoption before it starts. Lead with the honest Problem 1/2 pitch ("an auto-generated, always-current badge for your GitHub profile") so people adopt it for vanity/curiosity, the same way people add tech-stack cards to READMEs today with zero job-hunting intent. Credibility is the second act, introduced once trust and a real population already exist — not the opening pitch.
+
+**The architecture tension:** an actual two-sided marketplace with transactions (matching, maybe fees, maybe employer accounts) needs a centralized matching engine somewhere — a database, probably accounts. That's a genuinely different piece of infrastructure than the decentralized, no-server template designed for v1/v2. The `manifest.json` format and detector stay the shared data layer both could serve, but "the marketplace" would be its own build on top later, not a feature bolted onto the self-hosted template site.
+
+**Prior art, researched directly:**
+- **[WakaTime](https://definable.ai/apps/wakatime/)** — the closest existing analogue. Editor plugins (VS Code, JetBrains, Vim, etc.) passively send activity signals; public profiles include a browsable leaderboard filterable by language, country, and a "hireable" status flag — i.e., automatic evidence-based profiles are already a real, adopted, years-old category. Key difference from what we'd build: it tracks *time spent typing in an editor*, not tool/app/extension/hardware usage — same mechanism shape, different data, and it shares our exact known limitation (misses meetings, reviews, docs, and — for us — anything not captured locally).
+- The broader hiring-verification market (**HackerRank, CodeSignal, Testlify**) is dominated by *synthetic assessments* — new tests taken to prove skill — not evidence from real historical usage. Genuinely a different, less crowded paradigm than what WakaTime or Legacy would offer.
+- No existing tool combines full-spectrum (not just editor-time) usage evidence with a credibility/hiring framing. The gap for *this specific data* still holds.
+
+### Privacy model — what's safe to publish
+
+Real risk, not hypothetical: showcasing detected tools from a work-affiliated machine can violate an employer's confidentiality policy or, worse, leak security-relevant information.
+- **Sharpest risk — security exposure.** Naming which EDR/MDM/VPN tool a company uses (CrowdStrike, Okta, Jamf, SentinelOne, etc.) is real reconnaissance value for an attacker; most security teams treat this as sensitive regardless of how innocuous it feels day-to-day.
+- **NDA/confidentiality clauses** typically cover "the company's systems, tools, vendors" broadly enough that a full software inventory from a work laptop can technically qualify, even if nobody thinks of their CLI tool list that way.
+- **Internal package/project names leak context** — a private npm package or an oddly-named cloud profile can hint at internal project or client names.
+- Regulated industries (finance, healthcare, defense-adjacent) are stricter still, often blanket-prohibiting disclosure of internal tooling.
+
+**Design principle: allowlist-by-source as the default, not a denylist.** A denylist requires anticipating every possible sensitive tool in advance and will always miss an unknown internal one. An allowlist fails closed instead: anything unrecognized defaults to **private**. Concretely, reuse the `ToolSource` classification the detector already produces — tools sourced from **Homebrew core, the public npm registry, or crates.io** default visible (a company's internal CLI is essentially never published to a public registry); tools sourced as **`.local`/`.path`** (bare binaries, no package-manager backing) or from a **custom/private Homebrew tap** default hidden, since that's exactly where internal/proprietary tools live. Layer a denylist-by-name underneath as a safety net for known-sensitive vendors that happen to be public-registry-sourced anyway (a Homebrew Cask VPN client, say).
+
+**Hard rule, non-negotiable:** detection is always fully automatic and local; **publishing is never automatic.** Always requires an explicit human review/curation step before anything becomes public. This is a direct callback to how this whole project started — the accidental `stackshare` publish that exposed the `panther` project was exactly this failure mode at a smaller scale. Repeating it here, at a larger blast radius (employer-sensitive tooling instead of a hobby repo name), would be a real irony worth actively designing against.
+
+### Tamper-resistance — can usage be faked?
+
+The naive attack: a script looping a command hundreds of times to fake expertise (`for i in {1..500}; do terraform --version; done`).
+
+**First-layer mitigations (deter casual gaming, not a sophisticated attacker):**
+- **Burst-timing detection** — zsh's extended history timestamps every command to the second; a loop executes hundreds of invocations within seconds, real usage has irregular human-paced gaps. Discount invocations that cluster faster than plausible human action.
+- **Dedup by distinct (command + args + cwd)**, not raw count — a loop calls the identical line repeatedly; real usage varies subcommands/flags/directories. 500 identical calls collapse to "1 distinct usage."
+- **Cap contribution per day** — forces any padding attempt to spread across many real days instead of one sitting.
+- **Show a calendar heatmap, not a bare number** — same trick as GitHub's contribution graph; a burst reads as one suspicious dark square to any human glancing at it.
+
+**The harder truth, surfaced by direct questioning in this session: all of the above relies on locally-generated timestamps, and every one of them is fully attacker-controlled.** Shell history is a plain-text file anyone can hand-edit. The system clock can be changed before running commands, producing genuinely-executed-but-falsely-dated entries. File `mtime`/`ctime` can be set with `touch -t`. Even a local git commit's author-date is a field git lets you set explicitly. **No purely local, client-side mechanism can cryptographically bind a timestamp to truth when the subject fully controls the machine generating the "evidence."** This is a fundamental limitation, not a bug to patch with cleverer heuristics.
+
+**The real solution: hash the data, anchor the hash with an independent third party — never trust a locally-generated timestamp alone.** A hash alone doesn't help (hashing fabricated data just produces a valid hash of fabricated data) — the fix is submitting *only the hash* (not the underlying data) to a party that isn't the subject, and letting them record their own observation time. Because a cryptographic hash is collision-resistant, once a hash is anchored at time T, retroactively swapping in different data becomes computationally infeasible without changing the hash — the mismatch is immediately detectable.
+
+**Concrete, zero-infrastructure mechanism: [OpenTimestamps](https://opentimestamps.org/).** Free, open-source, no signup, already exists — no need to build or operate anything:
+1. Hash the current manifest snapshot locally (`opentimestamps-client`).
+2. Submit the hash to OpenTimestamps' free public calendar servers: `a.pool.opentimestamps.org`, `b.pool.opentimestamps.org`, `a.pool.eternitywall.com`, `alice.btc.calendar.opentimestamps.org`, `bob.btc.calendar.opentimestamps.org` (client requires 2 of these to respond within 5s).
+3. They batch many users' hashes and anchor the batch into an actual Bitcoin transaction.
+4. Get back a small `.ots` proof file, committed alongside the manifest in the same repo. Verifying later needs no service — anyone checks the proof against the public Bitcoin blockchain directly.
+
+This requires **no infrastructure of your own** — it's an outbound client call to already-running free services (the calendar servers, the Bitcoin network), the same category of dependency as the detector already calling `brew info`. The lighter alternative (the registry/aggregator recording an observed hash on its own schedule) is "infra-lite" too — a GitHub Actions scheduled workflow on GitHub's free compute, not a server you provision or keep alive.
+
+**Checkpoint cadence: snapshot the full aggregate state and anchor it on each manifest regeneration/publish — never per individual command.** Per-event timestamping is impractical (a network round-trip per shell command) and unnecessary: checkpoint-to-checkpoint diffs already reveal an implausible jump just as well as per-event proof would, without the overhead. Hash the complete current state each time (not an incremental delta) so each checkpoint is independently self-contained and comparable to the last.
+
+**Residual, honest limit:** this proves data hasn't changed since a specific anchored point — it cannot verify anything from before the first anchor exists. Trust only accumulates from when independent observation begins; there's no way to cryptographically verify a claim about history nobody was watching.
+
+### Validity in the AI era — does usage frequency still mean anything?
+
+A deeper problem than tampering: even for a completely honest, cooperative user, usage-frequency metrics are a weakening signal of real skill, for three compounding reasons.
+1. **Agentic tool-use is only partly caught.** The human-vs-agent split (`AgentHistory`) catches an agent autonomously running a command as a tool call, but nothing else.
+2. **The bigger blind spot: copy-pasting an AI-suggested command.** Someone asks an AI for the right command in chat, pastes it into their own terminal, runs it themselves — indistinguishable in shell history from genuine hands-on knowledge, even though the skill exercised was "knowing how to ask," not "knowing the tool." Probably more common than autonomous agentic execution, and nothing in the design catches it.
+3. **Even fully self-typed commands increasingly execute AI-authored logic** — someone types `terraform apply` themselves, but the entire `.tf` file was AI-generated and barely read. Pre-AI, correctly invoking a tool was itself evidence of understanding; AI has decoupled "producing the correct invocation" from "understanding why it's correct."
+
+**Conclusion:** this isn't a detector problem to engineer around — it's a reason to shrink the claim itself. Not "proof of expertise," not even "local usage evidence," but something closer to "what's actually in your regular workflow" — a fact about habits, not a claim about skill. This is an independent reason (on top of the cold-start problem) that the credibility signal stays parked until the base detector and badge have real adoption — the ground it would stand on is actively shifting, not just unbuilt.
+
+### What real hiring practice already does (researched directly, 2026)
+
+Before designing further, checked what companies actually do now that AI has made take-home tests and self-reported claims unreliable — because a Legacy usage profile is structurally the same shape as a take-home test (an artifact generated unsupervised, asynchronously, by the candidate alone), the exact category that's already lost trust industry-wide.
+
+- **71% of engineering leaders say AI makes technical skill assessment harder** — the industry response has been to move *away* from async, self-generated evidence, not to build better versions of it.
+- **AI-disabled live rounds** (Google/Meta/Amazon-style) — watch someone reason through a problem live, no AI, tests fundamentals under direct observation.
+- **AI-assisted live rounds** (Stripe/Shopify/Vercel-style, and a growing middle ground) — hand the candidate an AI tool and watch *how* they use it: what they prompt, what they accept, what they catch and reject. A live version of the same human-vs-agent distinction this project already designs for, just done synchronously instead of from a log.
+- **Concrete verification techniques already in production:** "explain your reasoning" follow-ups to catch memorized/generated answers, and demanding **specific, verifiable examples placed in time** ("tell me about a specific instance, what happened") rather than trusting a claim or artifact on its own.
+- **The valued skill has explicitly shifted from "can you produce" to "can you judge"** — catching AI's mistakes, explaining trade-offs, knowing when to reject a suggestion. Inherently live and conversational, not something a background invocation count can capture.
+
+**Implication for positioning, if the credibility signal is ever built:** don't build it to replace the live conversation industry has already converged on — build it to *feed* one. "Here's a specific, timestamped instance from my real history, ask me about it" matches the "specific example placed in time" technique that's already real practice. That's a smaller, more defensible claim than an automated score employers trust instead of talking to the person, and it's the version worth keeping.
+
+## Other interaction ideas (v-later)
+
+Three more concrete ideas surfaced from comparing to Raycast's mechanics and from Risk 2 (local history undercounting remote/cloud work). Searched for prior art on all three — nothing found combining these specific mechanics for this purpose; each is assemblable from existing, well-documented primitives.
+
+- **Distribution: a Raycast snippet trigger.** Raycast Snippets let a short keyword typed anywhere on the system expand into stored text. A small Raycast extension reading the existing `manifest.json` (no new detection work) could let a keystroke, typed into Slack/a cover letter/a tweet, expand into "Top 5 tools this month: ... — full setup: `<link>`". Turns sharing from "visit a page once" into an everyday, frictionless habit — author-facing, serves Problem 2's distribution.
+- **Reader experience: a command-palette search overlay inside the simulated desktop.** Instead of a static icon grid, a reader presses a hotkey (or clicks a spotlight icon) to get a fuzzy-searchable overlay across the author's toolkit. This is the concrete mechanism for the AXIALIS reply on flavio's tweet ("group tools by job, not just name, once the collection gets large") — search by intent ("deploy") instead of scrolling an alphabetical list. Reader-facing, serves "feels like a real system."
+- **Closing the remote/cloud detection gap via keyboard-triggered terminal capture.** A global hotkey runs `tmux capture-pane` (or iTerm2's scripting API) to grab the *local* terminal's visible screen content at that moment — which includes SSH/remote-session output too, since from tmux's perspective it's just rendered bytes regardless of what's running inside the pane. Feed the capture through the same command-detection parsing already needed for local shell history, log matches as "remote-observed usage," tagged distinctly from local-history-derived usage. Zero remote install required. Honest limits: it's a snapshot at the moment of the keypress, not continuous logging, and only works inside tmux or iTerm2 — a bare Terminal.app SSH session gives nothing to capture. Confirmed via search: the building blocks (`tmux capture-pane`, hotkey bindings) are standard and well-documented, but nobody has assembled them for personal tool-usage tracking — the existing tools in this space (SSHLog, auditd) are server-side security/audit daemons for a completely different audience (sysadmins monitoring *other* users), requiring remote install.
+
+## Naming
+
+Went through several angles before converging. Full list considered, with why each survived or was cut:
+
+**Cut — describe the wrong half (broadcasting/sharing, not the primary tool-amnesia problem):** Beacon, Payload, Telemetry.
+
+**Cut — oversaturated in tech, would get lost:** Rig, Atlas, Snapshot, Blueprint (all catchy in isolation, all already heavily used elsewhere — MongoDB Atlas, AWS Snapshot, etc.).
+
+**Cut — real collisions found via search:** Stash (a well-known, unrelated GitHub project — `stashapp/stash`, an adult-content media organizer; bad collision, would confuse searches), Memento (multiple existing dev-tool uses: an HTTP-caching tool, a personal content aggregator, a Memento-protocol CLI).
+
+**Cut — thematically perfect, fails readability/catchiness:** Diorama, Terrarium (both describe the "realistic miniature replica" mechanic precisely, but 4 syllables, less common words, real risk of mispronunciation/misspelling on first hearing).
+
+**Survived to the shortlist:**
+- **Manifest** — a cargo manifest is "what's aboard," kept as the authoritative record precisely so nobody has to remember or re-derive it. Fits Problem 1 (the record) as well as Problem 2 (manifest also means "make visible").
+- **Loadout** — "what you're currently equipped with." Checking your loadout before a mission is specifically about not forgetting what you're carrying — direct fit for tool amnesia. No collision found in this space.
+- **Artifact** — double meaning for developers: an archaeological relic (evidence of your work) and a CI/build artifact (a term devs already use daily).
+
+**Original leaning was Loadout** — cleanest search result at the time, strongest fit for the tool-amnesia framing. Superseded once the journey-over-time reframing (above) made "what I'm carrying right now" the wrong metaphor entirely.
+
+### Final decision (2026-09-19): Legacy
+
+Reconsidered naming from scratch against the new reframing. Candidates evaluated and cut:
+- **Provenance** — best conceptual fit (history + verified authenticity in one word, real art-world precedent), but failed the same readability bar that cut Diorama/Terrarium earlier: genuinely uncommon vocabulary, real risk of never having heard the word before.
+- **Chronicle** — safe, direct, no collision found beyond Google Chronicle (different domain), but flat — describes the mechanism, not the feeling.
+- **Trail / Track / Tracks** — plain, common, dev-adjacent double meanings ("audit trail," "track record"), but read generically, "like a company name" rather than something with real emotional specificity.
+- **"My Legacy"** — considered as a mitigation for Legacy's collision risk (dodges the "legacy code/system" adjectival-deprecation pattern). Ruled out: npm name `mylegacy` is free, but GitHub search shows the exact phrase is heavily colonized by an unrelated cluster of digital-inheritance/estate-planning apps (`my-legacy.ai`, `blockchainology/mylegacy`, `amisatoshi/mylegacy` — "Islamic Estate Planner", etc.) — a direct thematic collision, and "My ___" itself is a dated 2003-2005-era naming convention (MySpace, MyFitnessPal), not a fresh one.
+
+**Chosen: bare "Legacy."** Strongest direct emotional fit for the nostalgia-after-a-period-of-usage feeling that drove the reframing — validated repeatedly, not a one-off reaction. Real, confirmed risks accepted knowingly:
+- The exact npm package name `legacy` is already taken (an old, low-traffic "Legacy browser style sheet generator" with its own `legacy` CLI binary) — the actual npm-published package (once the detector exists) will need a different registry name (e.g. a scoped package), independent of the project/brand name.
+- On GitHub, "legacy" is a strong existing convention for marking a deprecated predecessor (`Homebrew/legacy-homebrew`, `BoostNote-Legacy`, `tenacity-legacy`, and even a bare `ErsatzTV/legacy` used this way) — every top search hit reinforces this reading. Mitigation: positioning/tagline should lean into the ambiguity directly rather than avoid it (e.g. "the systems you've outgrown, kept"), and/or the nostalgic "Legacy" framing can live as an in-product feature/retrospective name even if the top-level repo needs a qualified variant later.
+- GitHub repo will live under the personal account (`github.com/akpmohan07/legacy`), so the global `legacy` username being taken by an unrelated party is not a blocker.
+
+## Open, not yet decided
+
+- Detector stack: leaning Node/TS (same ecosystem as npm detection, keeps door open for the template renderer to share tooling) over Swift (macOS-only, ties to the same ecosystem `cli-tools` already occupies) — not yet confirmed.
+- `manifest.json` schema — needs designing once detector work starts; should stay stable/versioned since the future registry/aggregator (see above) depends on being able to fetch and parse everyone's manifest indefinitely.
+- Exact repo layout inside `loadout/` (single repo with detector + template as separate packages, vs. two repos).
