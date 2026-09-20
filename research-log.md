@@ -6,7 +6,7 @@ What should Legacy (formerly "Loadout") actually be, and which parts — the per
 
 **Entry format:** each entry opens with a *Thread* line — where it came from, where it's pointing next — so the log reads as one continuous line of thinking, not a pile of disconnected notes.
 
-*Last updated: 2026-09-20 01:48*
+*Last updated: 2026-09-20 04:41*
 
 ---
 
@@ -232,13 +232,49 @@ What should Legacy (formerly "Loadout") actually be, and which parts — the per
 
 ---
 
-### Open — live edge, as of 2026-09-20 01:48
+### 2026-09-20 · 01:56 — Platform scope made explicit: macOS-only for v1
+
+*Thread: asked directly "what's the system we are going to support" while reviewing ARCHITECTURE.md. Opens into: nothing downstream yet — this is the most recent entry.*
+
+- Every feasibility mechanism in `IDEATION.md` had quietly assumed macOS from the start (Homebrew, `/Applications`/`Info.plist`, `system_profiler`) without ever being stated as a deliberate scope decision — an accident of the author's own machine, not a choice.
+- Made explicit and confirmed: **macOS-only for v1.** Windows/Linux support is real and not hard to imagine (Homebrew/npm/cargo exist cross-platform; Windows would need registry + `Program Files` + winget/choco/scoop, Linux apt/dnf/pacman + `.desktop` files) but deliberately out of scope until the detector is proven end-to-end on one OS — the pluggable-scanner architecture in `ARCHITECTURE.md` doesn't block adding this later.
+- **Why this matters:** closes a gap that could have silently shaped early implementation decisions (e.g. picking Windows-unfriendly APIs without ever deciding to exclude Windows) — now it's a stated, revisitable choice instead of an unexamined default.
+
+---
+
+### 2026-09-20 · 02:00 — SQLite walked back from "locked" to "under exploration"; new evaluation heuristic set
+
+*Thread: asked directly not to finalize the SQLite choice before exploring options, and to weigh every future decision against whole-system view, scalability, and multiplatform support. Opens into: nothing downstream yet — this is the most recent entry.*
+
+- Corrected an over-hasty call: the previous entry (01:17–01:48) locked "SQLite as the working store" after a single framing, without a real options pass. Walked it back in `IDEATION.md`/`CLAUDE.md` — what's actually locked is the *split* (private working store ≠ public `legacy.json` export), not the engine.
+- Ran the real options pass: SQLite vs. flat JSON snapshots/append-log vs. DuckDB, against whole-system fit, scalability (schema evolution and query complexity over years, not raw throughput — this is one person's data), and multiplatform support (native-binding risk across Node/Swift × macOS/Windows/Linux). Honest finding: flat JSON scores *better* than SQLite on multiplatform (zero native deps) and whole-system consistency (matches every other artifact already being plain JSON) — SQLite's real edge is offloading eras/diff logic into a query engine, which matters more as that logic's complexity grows than it does on day one. Left genuinely open pending that complexity becoming clearer. Full table in `IDEATION.md`.
+- Set a standing rule for future decisions, now in `CLAUDE.md`: weigh every architecture call against whole-system fit, scalability, and multiplatform support *before* marking it locked — not after a single pitch, which is exactly what went wrong here.
+- **Why this matters:** the mistake itself is the more durable lesson than the SQLite question — mirrors the earlier issue-deletion incident (#3–#11: created without real discussion) in shape, just one layer up, in docs instead of GitHub issues. Same root cause: moving a idea straight to "locked" without the discussion actually happening first.
+
+---
+
+### 2026-09-20 · 02:37–04:41 — SQLite re-decided on actual access pattern; put behind an interface; dual export formats; registry push/pull designed
+
+*Thread: continued exploring storage options with the aggregator and renderer's actual consumption patterns in view. Opens into: nothing downstream yet — this is the most recent entry.*
+
+- Ran the options pass again, this time against a concrete access pattern instead of abstract criteria: daily activity ingestion (frequent small writes) plus growing historical range reads (diffs, eras). Under that specific pattern, SQLite is the only option where neither side degrades as history accumulates — flat JSON snapshots get slower to *write* every year (whole-file rewrite), an NDJSON append-log gets slower to *read* every year (linear scan, nothing indexed), DuckDB is tuned for bulk analytical loads rather than many small daily inserts. **Re-decided: SQLite**, this time on a concrete workload argument rather than a single abstract framing.
+- Traced through how the two real downstream consumers (the registry aggregator, a batch job with no bandwidth constraint; the template renderer, a browser client that does have one) would actually read the published data — both are well served by plain JSON at the realistic personal-data scale, which reinforced keeping `legacy.json`, not a database file, as the *public* contract, independent of whatever the local engine turns out to be.
+- Explored publishing SQLite directly (`sql.js-httpvfs`/DuckDB-WASM can range-query a static file without downloading it whole) — technically real, but the privacy filter still has to run before publish regardless of format, so it doesn't remove the review gate, only changes what comes out the other side of it. Landed on: `legacy.json` required/canonical, `legacy.db` (filtered SQLite export) optional companion, both generated from one filtered/approved snapshot so they can't drift on what's visible to each other.
+- Asked directly to make the SQLite choice non-fixed. Resolved by putting it behind a `WorkingStore` interface (Repository / ports-and-adapters pattern) — `recordScan`, `getToolHistory`, `diffSince`, `recordReviewDecision`, `getApprovedSnapshot`, `exportRaw`/`importRaw` — defined around what the detector needs to *do*, not around SQL-specific concepts, so a future non-SQL adapter could still implement it. `SqliteWorkingStore` ships as the only adapter in v1; swapping engines later is a new adapter plus a one-time `importRaw(exportRaw())` migration, not a rewrite.
+- Separately designed (not built): registry updates via push — each person's own opt-in Action opens a PR to the registry on data change, authenticated by a fine-grained PAT scoped to their own fork (self-service, no grant needed from the registry maintainer — the standard fork-and-PR flow, automated). Distributes fetch/compute cost across every registrant's own Actions budget as adoption grows, instead of centralizing it on the registry's scheduled job — a real scalability improvement over pure polling, not just a different shape. Scheduled pull kept as a fallback sweep for anyone who hasn't opted into push.
+- **Why this matters:** this is the same storage question as the 01:17 and 02:00 entries, but the third pass is the one that actually resolved it — each pass added a constraint the previous one was missing (an access pattern, then real downstream consumers, then non-fixedness) rather than re-arguing the same abstract tradeoffs. The interface discipline (`WorkingStore`) is what let the decision converge without becoming permanent — locking a decision "behind an interface" instead of leaving it fully open turned out to be the actual resolution to the "don't finalize prematurely" lesson from two entries ago, not just a hedge.
+
+---
+
+### Open — live edge, as of 2026-09-20 04:41
 
 *Thread: this section is the live edge of the log — always last, always open, rewritten (not appended to) as the thinking moves.*
 
-- **Nothing has been built yet.** Zero lines of detector code, zero `legacy.json` schema, four+ hours in. The explicit next-session priority is narrowing to this, not further Problem 3 exploration.
-- Detector stack still undecided — leaning Node/TS (shares an ecosystem with npm detection, keeps the door open for a template renderer in the same language) over Swift (macOS-only, ties to the same ecosystem `cli-tools` already occupies) — not confirmed.
-- `legacy.json` schema (and the SQLite table structure it's exported from) not yet designed — the single artifact every downstream idea (v1 render, the registry, Problem 3's evidence view, OpenTimestamps anchoring) depends on getting right first.
+- **Nothing has been built yet.** Zero lines of detector code, zero `legacy.json`/`legacy.db` schema, well past four hours in. The explicit next-session priority is narrowing to this, not further Problem 3 exploration.
+- Detector stack still undecided — leaning Node/TS (shares an ecosystem with npm detection, keeps the door open for a template renderer in the same language) over Swift (macOS-only, ties to the same ecosystem `cli-tools` already occupies) — not confirmed. Now also determines which SQLite binding the `WorkingStore` adapter uses.
+- `legacy.json`/`legacy.db` schema and the `WorkingStore` interface's exact method signatures not yet designed — the single artifact every downstream idea (v1 render, the registry, Problem 3's evidence view, OpenTimestamps anchoring) depends on getting right first.
+- The `libsqlite3`-on-Linux path for the Swift candidate is unverified — doesn't block macOS-only v1, but matters before the "swap engines" escape hatch gets exercised for real.
+- The registry push-via-PR mechanism is designed but not built — fine-grained PAT setup flow, schema-validation CI, auto-merge gate, fallback pull sweep.
 - The credibility-signal direction is fully parked pending real adoption of the personal tool and the badge — not to be picked up again until there's an actual population of users to make it meaningful.
 - Repo layout undecided: single repo with detector + template as separate packages, vs. two repos.
 - A white paper (open-source detection, the privacy/allowlist model, the tamper-resistance mechanism, honest limits) was identified as the right eventual vehicle for the credibility claim — not written, not urgent, but now has a defined shape for whenever it's picked back up.
