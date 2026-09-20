@@ -1,0 +1,40 @@
+research-log.md
+  s_fc98096aee2827::t_ee223bffd9b975 235-244
+  s_fc98096aee2827::t_6f0a64526377ca 9
+  s_fc98096aee2827::t_5a8af0bdf24e54 256-269,273-277
+  s_fc98096aee2827::t_a4e020675eb683 245-255
+ARCHITECTURE.md
+  s_fc98096aee2827::t_c779d56e892ea0 94,96,98,100,102,104-106,110
+  s_fc98096aee2827::t_c04bff05090f62 7,16-17,19-20,25-26,28-30,33-34,36-37,46,54,67-75,82,84,89
+manifest.md
+  s_fc98096aee2827::t_447b69d38082a0 1-25
+IDEATION.md
+  s_fc98096aee2827::t_8c6db4ef59aa7e 202-205
+  s_fc98096aee2827::t_d9c763fab7db13 189-197,199
+  s_fc98096aee2827::t_5adc4500641a82 198
+  s_fc98096aee2827::t_f93a4322e4eac4 188
+  s_fc98096aee2827::t_e616288068c3db 50
+  s_fc98096aee2827::t_152d2d2f53fd3d 57-59
+CLAUDE.md
+  s_fc98096aee2827::t_884c8322765a56 13,15
+  s_fc98096aee2827::t_c5794f4abd3883 29,31,33-41,45,49
+  s_fc98096aee2827::t_d7608308cbab6d 43,46
+  s_fc98096aee2827::t_ae62981d4ac449 42
+  s_fc98096aee2827::t_6079335e6f26af 47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "34d853b624f29b517ee009c8eb49d2713e2c5dfd",
+  "prompts": {},
+  "sessions": {
+    "s_fc98096aee2827": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d82d6557-6e6b-47bb-87b4-04dd928def2d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
