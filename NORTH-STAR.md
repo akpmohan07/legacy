@@ -25,7 +25,8 @@ Three real value props, sequenced deliberately — not three separate ideas, thr
 - *Idea:* remote/cloud usage capture via tmux/iTerm2 hotkey, tagged as remote-observed
 
 **Output**
-- `manifest.json` — stable, versioned; the shared data layer every other feature reads from
+- `legacy.json` — stable, versioned; the shared data layer every other feature reads from
+- Local SQLite store (private, never published) is the detector's actual working state — full scan history, diffs, manual review decisions; `legacy.json` is a filtered, human-reviewed export of it, not the same thing
 
 **Presentation**
 - Journey/retrospective rendering, not a raw table

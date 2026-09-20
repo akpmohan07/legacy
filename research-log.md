@@ -6,7 +6,7 @@ What should Legacy (formerly "Loadout") actually be, and which parts — the per
 
 **Entry format:** each entry opens with a *Thread* line — where it came from, where it's pointing next — so the log reads as one continuous line of thinking, not a pile of disconnected notes.
 
-*Last updated: 2026-09-19 22:58*
+*Last updated: 2026-09-20 01:48*
 
 ---
 
@@ -220,13 +220,25 @@ What should Legacy (formerly "Loadout") actually be, and which parts — the per
 
 ---
 
-### Open — live edge, as of 2026-09-17 02:54
+### 2026-09-20 · 01:17–01:48 — Zoomed out to full system architecture; legacy.json renamed, local SQLite store added
+
+*Thread: resumed after a session gap, asked to zoom out to system-level components covering every feature, not just v1. Opens into: nothing downstream yet — this is the most recent entry.*
+
+- Mapped every feature (built, deferred, parked, v-later) onto distinct deployable components: the detector (local, privileged), the manifest/schema (contract), the template renderer, distribution add-ons (GitHub badge, Raycast extension), the registry/aggregator, and the marketplace (Problem 3's endgame, the one piece needing real server infra). Everything downstream of the manifest turned out to be a pure reader — no component talks to another except through that one file.
+- That mapping fed directly into two concrete decisions: **output file renamed `manifest.json` → `legacy.json`** (matches the product name), and **local storage split into two layers** — a private SQLite working store on the user's machine (full scan history, diffs across checkpoints, manual review decisions, never published) versus `legacy.json` as a filtered, human-reviewed *export* of it, not the working store itself. Resolved directly from the "journey over time" reframing: building an eras narrative needs diff/query-friendly history, which a single flat file handles poorly.
+- Confirmed this doesn't reopen the earlier "no database" deployment decision — that one is about a hosted server backend; SQLite here is a local embedded file, same infrastructure category as `legacy.json` itself, just queryable. Doesn't bias the still-open detector-stack decision either — well-supported on both the Node/TS and Swift candidates.
+- Created `ARCHITECTURE.md` as the new home for the component diagram (Mermaid, kept as versioned/diffable markdown rather than an external diagramming tool) — none of the four existing docs were the right fit for system-design content specifically.
+- **Why this matters:** first time the full feature set (including everything parked/deferred) was mapped as one system rather than discussed pillar-by-pillar — surfaced that the manifest/export file is the only real integration point in the whole design, which is what made the local-storage split obvious once asked directly.
+
+---
+
+### Open — live edge, as of 2026-09-20 01:48
 
 *Thread: this section is the live edge of the log — always last, always open, rewritten (not appended to) as the thinking moves.*
 
-- **Nothing has been built yet.** Zero lines of detector code, zero `manifest.json` schema, four+ hours in. The explicit next-session priority is narrowing to this, not further Problem 3 exploration.
+- **Nothing has been built yet.** Zero lines of detector code, zero `legacy.json` schema, four+ hours in. The explicit next-session priority is narrowing to this, not further Problem 3 exploration.
 - Detector stack still undecided — leaning Node/TS (shares an ecosystem with npm detection, keeps the door open for a template renderer in the same language) over Swift (macOS-only, ties to the same ecosystem `cli-tools` already occupies) — not confirmed.
-- `manifest.json` schema not yet designed — the single artifact every downstream idea (v1 render, the registry, Problem 3's evidence view, OpenTimestamps anchoring) depends on getting right first.
+- `legacy.json` schema (and the SQLite table structure it's exported from) not yet designed — the single artifact every downstream idea (v1 render, the registry, Problem 3's evidence view, OpenTimestamps anchoring) depends on getting right first.
 - The credibility-signal direction is fully parked pending real adoption of the personal tool and the badge — not to be picked up again until there's an actual population of users to make it meaningful.
 - Repo layout undecided: single repo with detector + template as separate packages, vs. two repos.
 - A white paper (open-source detection, the privacy/allowlist model, the tamper-resistance mechanism, honest limits) was identified as the right eventual vehicle for the credibility claim — not written, not urgent, but now has a defined shape for whenever it's picked back up.
