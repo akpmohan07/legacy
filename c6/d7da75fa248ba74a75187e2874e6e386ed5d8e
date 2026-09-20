@@ -1,0 +1,38 @@
+CLAUDE.md
+  s_fc98096aee2827::t_6b7a4b3a6deac4 9,15-16
+  s_fc98096aee2827::t_6c0b9597542a60 13
+  s_fc98096aee2827::t_c94bbae403868b 1-8,10-12,14,17-20,33-37,40,42-45,47-49
+  s_fc98096aee2827::t_e6472e1a022563 21-24,27-32
+  s_fc98096aee2827::t_86b18857f06630 25-26
+  s_fc98096aee2827::t_fb85329b7c795a 38-39,41,46
+IDEATION.md
+  s_fc98096aee2827::t_8e8c2c0aa1f5ca 55-56
+  s_fc98096aee2827::t_03792b541703f1 188
+  s_fc98096aee2827::t_789d436dc63c70 149
+  s_fc98096aee2827::t_634cd00bc31e9b 79
+  s_fc98096aee2827::t_add793a1445979 64
+research-log.md
+  s_fc98096aee2827::t_ae3df351c11b58 9
+  s_fc98096aee2827::t_a6ba107bc549e8 223-235
+  s_fc98096aee2827::t_9c9a154838df6c 239,241
+NORTH-STAR.md
+  s_fc98096aee2827::t_0a0cd93c0ace73 28-29
+ARCHITECTURE.md
+  s_fc98096aee2827::t_72c46576c63645 1-103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c6d7da75fa248ba74a75187e2874e6e386ed5d8e",
+  "prompts": {},
+  "sessions": {
+    "s_fc98096aee2827": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d82d6557-6e6b-47bb-87b4-04dd928def2d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
