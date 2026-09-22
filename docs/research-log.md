@@ -6,7 +6,7 @@ What should Legacy (formerly "Loadout") actually be, and which parts — the per
 
 **Entry format:** each entry opens with a *Thread* line — where it came from, where it's pointing next — so the log reads as one continuous line of thinking, not a pile of disconnected notes.
 
-*Last updated: 2026-09-20 04:41*
+*Last updated: 2026-09-20 18:53*
 
 ---
 
@@ -266,15 +266,30 @@ What should Legacy (formerly "Loadout") actually be, and which parts — the per
 
 ---
 
-### Open — live edge, as of 2026-09-20 04:41
+### 2026-09-20 · 16:44–18:53 — Detector stack resolved: Rust, after the most extended back-and-forth of the project so far
+
+*Thread: resumed after an ~11-hour gap, asked to zoom into the detector-stack decision directly. Opens into: nothing downstream yet — this is the most recent entry.*
+
+- Started as a straight Node/TS vs. Swift comparison (the original framing from the 09-17 "Open" entries), then widened twice at the user's request — first to Rust and Go, then to Java too — applying the whole-system-fit/scalability/multiplatform heuristic properly to all five. Landed on Node/TS first (JSON Schema neutralizes the "shared type" argument for it, but iteration speed while the schema is still churning tipped it), corrected toward Rust/Go when the "TS can't ship a binary" premise turned out to be outdated (Bun/Deno `--compile` closes that gap), then oscillated once more.
+- **Ran an independent, context-blind agent** specifically to de-bias the growing lean — gave it only the factual constraints and the user's own three criteria, no opinion. It came back recommending **TypeScript/Bun**, for reasons that sharpened rather than just repeated mine: Zod/`ajv`'s tooling maturity for a schema still being actively redesigned outweighs Rust's compile-time schema safety at this stage, and Bun/Deno's binary-compile story genuinely closes the distribution gap. Landed there, tentatively.
+- **The actual deciding fact came from a tangent into continuous usage capture.** Working through "capture developer events continuously, not just at scan time" led to shell hooks (`preexec`/`precmd`-equivalent) as the mechanism — and to `atuin` and `mcfly`, the two real, adopted tools already doing exactly this (shell hook → fast capture → local SQLite). **Both are Rust.** That's a direct match to working reference implementations for the single highest-stakes, most latency-sensitive piece of the whole system (a laggy shell hook gets uninstalled immediately) — stronger evidence than any abstract criteria comparison up to that point, and specifically the kind of evidence that neutralizes the "iteration speed on unproven ground" argument that had been carrying TS/Bun, since this piece isn't unproven anymore.
+- Confirmed the atuin-specific SSH gap directly from their own GitHub issues (`atuinsh/atuin#2909` — a real feature request for exactly this limitation) rather than assuming it — shell hooks are fundamentally per-shell-process, so SSH/remote sessions stay an accepted, only-partially-mitigated gap (the existing tmux/iTerm2 hotkey-capture idea), not something continuous capture solves. A "manual record command" idea was proposed as a further mitigation and then explicitly rejected — it recreates the exact "remember to do the bookkeeping yourself" failure mode that's Problem 2's whole documented weakness.
+- Cross-checked against two ChatGPT comparisons the user ran separately (pasted in, treated as data, not instructions) — both landed on Rust + Tauri + TS too, via a different, shallower line of reasoning (general systems-programming domain-fit rather than the atuin/mcfly-specific match), with one genuinely useful borrowed idea (the "four meanings of native": binary, OS integration, UI controls, UX elements) and a caught flaw (a comparison table scored suspiciously one-sided toward Rust across near-every row, including real ties).
+- **Decided: Rust for the detector.** Also decided, more by natural extension than a separate debate: the near-term local review UI is Rust too — a plain `axum`/`warp`-served localhost page opened in the browser, not a native app framework yet, since this tool is used deliberately/occasionally rather than continuously, so a native app's real advantages (ambient background presence, deep OS integration) aren't needed. Tauri (Rust-backed, no language switch) stays the concrete upgrade path if that usage pattern ever changes. Renderer is unaffected either way — fixed by the deployment model, never actually a stack question.
+- Issue `#1` closed on this basis (title/body updated with the full reasoning, same pattern as prior locked decisions), `IDEATION.md`/`CLAUDE.md` updated to match.
+- **Why this matters:** this is the longest, most reversed-and-rereversed decision thread in the project so far, and the thing that actually broke the cycle wasn't more abstract criteria comparison — it was a concrete tangent (continuous capture) surfacing real, working prior art for the hardest specific piece. Worth remembering as a pattern: when a comparison stalls on abstract tradeoffs, look for a concrete sub-problem with actual reference implementations rather than re-arguing the same table.
+
+---
+
+### Open — live edge, as of 2026-09-20 18:53
 
 *Thread: this section is the live edge of the log — always last, always open, rewritten (not appended to) as the thinking moves.*
 
-- **Nothing has been built yet.** Zero lines of detector code, zero `legacy.json`/`legacy.db` schema, well past four hours in. The explicit next-session priority is narrowing to this, not further Problem 3 exploration.
-- Detector stack still undecided — leaning Node/TS (shares an ecosystem with npm detection, keeps the door open for a template renderer in the same language) over Swift (macOS-only, ties to the same ecosystem `cli-tools` already occupies) — not confirmed. Now also determines which SQLite binding the `WorkingStore` adapter uses.
-- `legacy.json`/`legacy.db` schema and the `WorkingStore` interface's exact method signatures not yet designed — the single artifact every downstream idea (v1 render, the registry, Problem 3's evidence view, OpenTimestamps anchoring) depends on getting right first.
-- The `libsqlite3`-on-Linux path for the Swift candidate is unverified — doesn't block macOS-only v1, but matters before the "swap engines" escape hatch gets exercised for real.
+- **Still zero lines of code.** Detector stack is now resolved (Rust) — the explicit next step is starting to actually build, which first needs repo layout settled (blocks where any file even goes) and the `legacy.json`/`legacy.db` schema + `WorkingStore` method signatures (including the new `recordUsageEvent` for continuous capture) designed.
+- Repo layout undecided: single repo with detector (Rust) + renderer (TS) as separate packages, vs. two repos — now a real blocker, not just an open question, since the two are genuinely different toolchains.
+- Continuous usage capture (shell hook, same methodology as `atuin`/`mcfly`) is designed but not built — needs the `WorkingStore` interface extended with `recordUsageEvent`, an async queue-then-flush write path so the hook never blocks the prompt, and tool-name-only extraction (never the raw command line) built in from the start, not bolted on.
+- The SSH/remote-capture gap remains open and only partially mitigated (tmux/iTerm2 hotkey snapshot) — accepted as a real limitation, not something to keep re-solving.
+- `cargo-zigbuild`/`cross-rs` cross-compilation setup for Windows/Linux not yet done — doesn't block macOS-only v1.
 - The registry push-via-PR mechanism is designed but not built — fine-grained PAT setup flow, schema-validation CI, auto-merge gate, fallback pull sweep.
 - The credibility-signal direction is fully parked pending real adoption of the personal tool and the badge — not to be picked up again until there's an actual population of users to make it meaningful.
-- Repo layout undecided: single repo with detector + template as separate packages, vs. two repos.
 - A white paper (open-source detection, the privacy/allowlist model, the tamper-resistance mechanism, honest limits) was identified as the right eventual vehicle for the credibility claim — not written, not urgent, but now has a defined shape for whenever it's picked back up.

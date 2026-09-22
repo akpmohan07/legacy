@@ -4,6 +4,8 @@ What each planning doc in this repo owns, so any piece of information has exactl
 
 **Not to be confused with `legacy.json`/`legacy.db`** — those are the *product's* own output manifest, described in `IDEATION.md`/`ARCHITECTURE.md`. This file is about the repo's own planning docs.
 
+**Location: everything in this table lives in `docs/`, except `CLAUDE.md`, which stays at repo root** (2026-09-22 — that's where Claude Code looks for it, so it can't move with the rest).
+
 ## The rule
 
 Before writing an explanation anywhere, ask: **which file owns this kind of information?** Put it only there. Everywhere else gets a pointer (doc name + section), never a restatement. If a "why" sentence is being written in anything other than `IDEATION.md`, that's the signal something is about to get duplicated again.
@@ -19,7 +21,8 @@ Before writing an explanation anywhere, ask: **which file owns this kind of info
 | **`related-products.md`** | External prior art / competitor research, self-contained. | Internal decisions | Rarely needs to reference the others |
 | **`CLAUDE.md`** | **Operational guidance for a Claude Code session** — task-tracking workflow, decision-making heuristic, and an index pointing into every doc below (including this one). Not a content doc itself. | Decision content or reasoning | Points to all of the above |
 | **`manifest.md`** (this file) | The ownership table itself — what each doc is for. | Decision content | — |
+| **`LESSONS.md`** | General engineering guidelines/rules — reusable across future projects, not specific to Legacy's own decisions. | Legacy-specific decision reasoning (that's `IDEATION.md`'s job) | `IDEATION.md` when a guideline here actually shaped a Legacy decision |
 
 ## Filenames at a glance
 
-`IDEATION.md` · `ARCHITECTURE.md` · `research-log.md` · `NORTH-STAR.md` · `related-products.md` · `manifest.md` · `CLAUDE.md`
+`IDEATION.md` · `ARCHITECTURE.md` · `research-log.md` · `NORTH-STAR.md` · `related-products.md` · `manifest.md` · `CLAUDE.md` · `LESSONS.md`

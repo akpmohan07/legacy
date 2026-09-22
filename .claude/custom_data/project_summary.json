@@ -1,0 +1,21 @@
+{
+  "archived": false,
+  "sessions": {
+    "d82d6557-6e6b-47bb-87b4-04dd928def2d": {
+      "is_active": true,
+      "logical_session_count": 4,
+      "last_title": "Rust detector scaffold and SQLite schema design",
+      "last_summary": "Resolved the detector-language decision (Rust, closing issue #1) and repo layout (single monorepo, closing issue #2), then hand-built a working first-pass scanner that walks /Applications and parses Info.plist for bundle ID/version, explaining Rust fundamentals along the way since this is the user's first Rust project. Designed a five-table SQLite schema (tools, scans, scan_results, usage_events, checkpoints) for the WorkingStore, after which the user chose to take over the ER/LLD diagramming themselves in excalidraw/system.excalidraw as a learning exercise. Also diagnosed a noisy atuin integration hook (PreToolUse/PostToolUse/PostToolUseFailure on the Bash matcher in ~/.claude/settings.json) that fails because atuin isn't installed locally.",
+      "last_next_steps": "User to finish the schema/ER design themselves in excalidraw/system.excalidraw; then translate it into Rust (rusqlite migration code) for the WorkingStore. Continue building remaining scanners (Homebrew Cellar, cargo, npm). Nothing from this session is committed yet \u2014 detector/ scaffold and doc updates (IDEATION.md, CLAUDE.md, research-log.md) since commit 34d853b are still local-only.",
+      "last_ended_at": 1789934836.73538
+    },
+    "31fc6967-a4dd-4a1f-8a0e-622370e285d5": {
+      "is_active": true,
+      "logical_session_count": 1,
+      "last_title": null,
+      "last_summary": null,
+      "last_next_steps": null,
+      "last_ended_at": null
+    }
+  }
+}
