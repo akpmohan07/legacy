@@ -1,0 +1,13 @@
+{
+  "archived": false,
+  "sessions": {
+    "d82d6557-6e6b-47bb-87b4-04dd928def2d": {
+      "is_active": true,
+      "logical_session_count": 1,
+      "last_title": null,
+      "last_summary": null,
+      "last_next_steps": null,
+      "last_ended_at": null
+    }
+  }
+}

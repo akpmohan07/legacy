@@ -1,0 +1,13 @@
+[package]
+name = "legacy-detector"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+plist = "1.10.1"
+diesel = { version = "2.3", features = ["sqlite", "returning_clauses_for_sqlite_3_35"] }
+diesel_migrations = { version = "2.3", features = ["sqlite"] }
+libsqlite3-sys = { version = "0.35", features = ["bundled"] }
+dirs = "6.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
