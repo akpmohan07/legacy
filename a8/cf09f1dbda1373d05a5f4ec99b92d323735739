@@ -1,0 +1,51 @@
+docs/manifest.md
+  s_3e41dfcbcbd6ab::t_1e42c1a68d02a3 7-8
+  s_3e41dfcbcbd6ab::t_3506a0063a4c77 24,28
+CLAUDE.md
+  s_fc98096aee2827::t_6f2df0789c83e0 42-43
+  s_3e41dfcbcbd6ab::t_5c9dc6327dd7f0 13,15
+  s_3e41dfcbcbd6ab::t_ee164e7b8b6c50 27,29,31
+  s_fc98096aee2827::t_15018f7351504a 44
+  s_3e41dfcbcbd6ab::t_425263da42a2e8 21
+  s_3e41dfcbcbd6ab::t_1c6d5b156aa1ff 48,52
+.gitignore
+  s_fc98096aee2827::t_777cf9f882a33b 1
+docs/IDEATION.md
+  s_3e41dfcbcbd6ab::t_192e20fa2fc7eb 59-62,206-208
+docs/LESSONS.md
+  s_3e41dfcbcbd6ab::t_180da67da44356 1-48
+docs/research-log.md
+  s_3e41dfcbcbd6ab::t_8b65eb6b1c9da5 9,269-284,288-292
+.claude/custom_data/project_summary.json
+  s_3e41dfcbcbd6ab::t_4c1640651cb3ad 1-21
+.claude/custom_data/sessions/31fc6967-a4dd-4a1f-8a0e-622370e285d5.json
+  s_3e41dfcbcbd6ab::t_d5bdde270f2185 1
+.claude/custom_data/sessions/d82d6557-6e6b-47bb-87b4-04dd928def2d.json
+  s_fc98096aee2827::t_c958ff8333bdff 1
+excalidraw/system.excalidraw
+  s_3e41dfcbcbd6ab::t_df5868363e49e2 1-1921
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a8cf09f1dbda1373d05a5f4ec99b92d323735739",
+  "prompts": {},
+  "sessions": {
+    "s_3e41dfcbcbd6ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "31fc6967-a4dd-4a1f-8a0e-622370e285d5",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    },
+    "s_fc98096aee2827": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d82d6557-6e6b-47bb-87b4-04dd928def2d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
