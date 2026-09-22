@@ -1,0 +1,65 @@
+detector/diesel.toml
+  s_fc98096aee2827::t_73df0cf5de6298 1-9
+detector/migrations/2026-09-22-133217-0000_create_sources_and_tools/up.sql
+  s_fc98096aee2827::t_31b6c11fc1cd0e 1-15
+detector/migrations/2026-09-22-133304-0000_seed_sources/up.sql
+  s_fc98096aee2827::t_b6cb23dc2c80e4 1-7
+detector/src/scanner/macos/applications.rs
+  s_fc98096aee2827::t_8a47f1ef79f003 1-7,12-55
+  s_fc98096aee2827::t_248bb343917891 8-11
+detector/src/scanner/macos/mod.rs
+  s_fc98096aee2827::t_73487f76746e46 1-3
+detector/src/store/mod.rs
+  s_fc98096aee2827::t_5eb56db60f182b 46-48
+  s_fc98096aee2827::t_7d3c78c70e6d5b 1-45,49-70
+detector/migrations/2026-09-22-133217-0000_create_sources_and_tools/down.sql
+  s_fc98096aee2827::t_5bb97ef95f7387 1-2
+detector/src/main.rs
+  s_fc98096aee2827::t_e6e8f431d9f759 25
+  s_fc98096aee2827::t_ca0603ee80551f 2,6,8-9,11,15-20,23
+  s_fc98096aee2827::t_47b0b7b8fbf88a 1,3-4,10,12-14,21,24
+  s_fc98096aee2827::t_12a8eb54ae96b3 5,7,22
+detector/src/schema.rs
+  s_fc98096aee2827::t_0a6df716ee76f9 1-24
+detector/.gitignore
+  s_fc98096aee2827::t_a427e1748048f8 2-3
+  s_fc98096aee2827::t_bafd19edbd684e 4
+  s_fc98096aee2827::t_3f3d27758da29e 1
+detector/Cargo.toml
+  s_fc98096aee2827::t_3079c67885d4e0 12-13
+  s_fc98096aee2827::t_0d77cbd9b404c4 8-11
+  s_fc98096aee2827::t_e6e8f431d9f759 1-6
+  s_fc98096aee2827::t_cd4133bece6abe 7
+detector/src/models.rs
+  s_fc98096aee2827::t_de0bb3a2ab18ea 18
+  s_fc98096aee2827::t_cbe1278a9eba72 8
+  s_fc98096aee2827::t_533933ffd887a5 1-7,9-17,19-32
+detector/migrations/2026-09-22-133304-0000_seed_sources/down.sql
+  s_fc98096aee2827::t_770a6519b512a7 1-3
+detector/src/scanner/mod.rs
+  s_fc98096aee2827::t_9b8ede6bfe8ab2 48-50,55-58
+  s_fc98096aee2827::t_2d777eba681158 1-26,29-47,51-54,59-65
+  s_fc98096aee2827::t_8f35a47a7ee6a3 27-28
+detector/Cargo.lock
+  s_fc98096aee2827::t_2926b1497bb02d 1-673
+detector/.claude/custom_data/project_summary.json
+  s_fc98096aee2827::t_b2d0616ea59ad3 1-13
+detector/.claude/custom_data/sessions/d82d6557-6e6b-47bb-87b4-04dd928def2d.json
+  s_fc98096aee2827::t_f82eed2f39a1ec 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d846fbb2c5b94955664d8addf7fb4f6f6c497f87",
+  "prompts": {},
+  "sessions": {
+    "s_fc98096aee2827": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d82d6557-6e6b-47bb-87b4-04dd928def2d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
