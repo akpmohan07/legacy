@@ -40,6 +40,7 @@ impl ScannerRegistry {
         #[cfg(target_os = "macos")]
         {
             scanners.push(Box::new(macos::ApplicationsScanner));
+            scanners.push(Box::new(macos::HomebrewCellarScanner));
         }
 
         Self { scanners }
