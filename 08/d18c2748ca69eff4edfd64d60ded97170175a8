@@ -1,0 +1,29 @@
+docs/IDEATION.md
+  s_fc98096aee2827::t_557d8c21225fe4 211-212
+  s_fc98096aee2827::t_57e796b14aaebd 64
+docs/LESSONS.md
+  s_fc98096aee2827::t_71902b9afb1d42 11-12
+.claude/custom_data/sessions/d82d6557-6e6b-47bb-87b4-04dd928def2d.json
+  s_fc98096aee2827::t_aa931959282b4b 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "08d18c2748ca69eff4edfd64d60ded97170175a8",
+  "prompts": {},
+  "humans": {
+    "h_f6c2af0c8aa8ab": {
+      "author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_fc98096aee2827": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d82d6557-6e6b-47bb-87b4-04dd928def2d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
