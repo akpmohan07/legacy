@@ -1,0 +1,45 @@
+detector/src/store/mod.rs
+  s_fc98096aee2827::t_72d00c59678474 47-50,52
+  s_fc98096aee2827::t_2a4c2e99f899e3 37-38,42-46,51,53-67
+  s_fc98096aee2827::t_61adef70200a91 1-2
+  s_fc98096aee2827::t_1612c243c471bb 68-69
+detector/migrations/2026-09-22-145022-0000_create_local_identity/up.sql
+  s_fc98096aee2827::t_d804c31ef0b706 1-6,8
+  s_fc98096aee2827::t_1d6a0a4fec2496 7
+detector/src/models.rs
+  s_fc98096aee2827::t_8311028c2d88b3 1,35,37,39-40,42-43,47-50
+  s_fc98096aee2827::t_bbdb36dead680f 33-34,36,38,41,44-46,51-53
+detector/src/schema.rs
+  s_fc98096aee2827::t_56b1c0ab0f7186 4-13,35
+  s_fc98096aee2827::t_02721e59b12b49 3
+detector/migrations/2026-09-22-145022-0000_create_local_identity/down.sql
+  s_fc98096aee2827::t_2c872d906c8420 1
+detector/src/identity.rs
+  s_fc98096aee2827::t_5c60a787db2f61 1-58
+detector/Cargo.toml
+  s_fc98096aee2827::t_0d9ff0ecbdd952 14-15
+detector/src/main.rs
+  s_fc98096aee2827::t_7d66dcc470cb98 1
+detector/Cargo.lock
+  s_fc98096aee2827::t_0d0b651514b1b6 11-16,147-156,207-230,281,296-297,353-361,368-433,446-451,588-593,634-648,742-768,814-925,932-959,969-977,990-995
+.claude/custom_data/project_summary.json
+  s_fc98096aee2827::t_45e0d12d9189e0 6-10
+.claude/custom_data/sessions/d82d6557-6e6b-47bb-87b4-04dd928def2d.json
+  s_fc98096aee2827::t_b70872e376b1f7 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a82851ad69909863fcbf28a8d66ec68767bcdfc0",
+  "prompts": {},
+  "sessions": {
+    "s_fc98096aee2827": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d82d6557-6e6b-47bb-87b4-04dd928def2d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
