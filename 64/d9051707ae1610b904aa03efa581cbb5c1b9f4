@@ -1,0 +1,28 @@
+detector/src/scanner/macos/homebrew_cellar.rs
+  s_fc98096aee2827::t_a5213917c19d8f 1-101
+detector/src/scanner/macos/mod.rs
+  s_fc98096aee2827::t_e0be3885eb6736 2,5
+detector/src/scanner/mod.rs
+  s_fc98096aee2827::t_c817ea5698a952 43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "64d9051707ae1610b904aa03efa581cbb5c1b9f4",
+  "prompts": {},
+  "humans": {
+    "h_f6c2af0c8aa8ab": {
+      "author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_fc98096aee2827": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d82d6557-6e6b-47bb-87b4-04dd928def2d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
