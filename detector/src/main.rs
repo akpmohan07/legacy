@@ -1,3 +1,4 @@
+mod identity;
 mod models;
 mod scanner;
 mod schema;

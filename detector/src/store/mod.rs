@@ -1,4 +1,5 @@
-use crate::models::NewTool;
+use crate::identity;
+use crate::models::{NewLocalIdentity, NewTool};
 use crate::scanner::DiscoveredTool;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
@@ -33,7 +34,37 @@ pub fn open_store() -> SqliteConnection {
     conn.run_pending_migrations(MIGRATIONS)
         .expect("failed to run migrations");
 
+    ensure_local_identity(&mut conn);
+
     conn
+}
+
+/// Populates `local_identity` once, on first run only. Never re-resolved
+/// or upserted afterward — nothing about it changes scan to scan.
+fn ensure_local_identity(conn: &mut SqliteConnection) {
+    use crate::schema::local_identity;
+
+    let count: i64 = local_identity::table
+        .count()
+        .get_result(conn)
+        .expect("failed to query local_identity");
+
+    if count > 0 {
+        return;
+    }
+
+    let resolved = identity::resolve();
+    let new_identity = NewLocalIdentity {
+        platform_uuid: &resolved.platform_uuid,
+        device_name: resolved.device_name.as_deref(),
+        username: resolved.username.as_deref(),
+        attributes: Some(&resolved.attributes_json),
+    };
+
+    diesel::insert_into(local_identity::table)
+        .values(&new_identity)
+        .execute(conn)
+        .expect("failed to insert local_identity");
 }
 
 pub fn upsert_tool(conn: &mut SqliteConnection, source_name: &str, tool: &DiscoveredTool) {
