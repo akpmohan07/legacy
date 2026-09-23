@@ -8,6 +8,8 @@ General software-engineering guidelines, not specific to Legacy's own decisions.
 - **Don't assume a "unique" key stays unique.** Treat things like bundle IDs or package names as likely-unique, not guaranteed — a real-world edge case will eventually break the assumption.
 - **Add `created_at`/timestamps to any row that needs history.** It can't be backfilled once the data that would have populated it is already gone.
 - **Fix timestamps to a stated timezone (UTC).** Local-time storage leads to silent "off by N hours" bugs once compared across sources.
+- **Name timestamp columns with an `_at` suffix.** `installed_at`, `occurred_at`, `first_seen_at` — the suffix marks a point in time (a bare `installed` reads as a yes/no flag), and one convention across every table removes guessing. Reserve `_on` for date-only values.
+- **Keep "when it happened" and "when we noticed" as separate fields.** A system that finds out later can only honestly record when it noticed; store the real date in its own optional field when the source provides one, instead of passing detection time off as the real event time.
 
 ## Error handling
 
