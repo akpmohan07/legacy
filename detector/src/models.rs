@@ -10,9 +10,10 @@ pub struct Source {
     #[diesel(column_name = type_)]
     pub source_type: String,
     pub version: Option<String>,
+    /// Set when the source's first successful scan is recorded. Empty means it has never been
+    /// recorded, which makes its next scan the baseline (state recorded, no events).
     pub first_seen_at: Option<String>,
     pub installed_at: Option<String>,
-    pub baselined_at: Option<String>,
     pub status: Option<String>,
 }
 

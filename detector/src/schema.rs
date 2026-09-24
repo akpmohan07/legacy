@@ -43,7 +43,6 @@ diesel::table! {
         version -> Nullable<Text>,
         first_seen_at -> Nullable<Text>,
         installed_at -> Nullable<Text>,
-        baselined_at -> Nullable<Text>,
         status -> Nullable<Text>,
     }
 }
