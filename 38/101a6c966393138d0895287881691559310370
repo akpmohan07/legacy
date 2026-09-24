@@ -1,0 +1,38 @@
+docs/decisions/0007-scans-per-source-and-freshness.md
+  s_fc98096aee2827::t_bc6fba1abaa320 1-52
+docs/decisions/README.md
+  s_fc98096aee2827::t_b966a11fb1e62f 1-30
+docs/decisions/0008-uninstall-only-when-confirmed-gone.md
+  s_fc98096aee2827::t_0dac5354b476b9 1-51
+docs/decisions/0005-change-events-are-transitions.md
+  s_fc98096aee2827::t_af954b273036ca 1-55
+docs/decisions/0006-baseline-per-source.md
+  s_fc98096aee2827::t_3233379b8073c3 1-52
+docs/manifest.md
+  s_fc98096aee2827::t_d214c3458f8241 17-18
+  s_fc98096aee2827::t_2bb73f64a4a8fc 29
+  s_fc98096aee2827::t_6f5a89a8bc26d1 11
+.claude/custom_data/sessions/d82d6557-6e6b-47bb-87b4-04dd928def2d.json
+  s_fc98096aee2827::t_82c8591c9a47a5 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "38101a6c966393138d0895287881691559310370",
+  "prompts": {},
+  "humans": {
+    "h_f6c2af0c8aa8ab": {
+      "author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_fc98096aee2827": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d82d6557-6e6b-47bb-87b4-04dd928def2d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
