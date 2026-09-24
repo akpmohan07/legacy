@@ -3,6 +3,7 @@
 //! Nothing here touches the database or the filesystem.
 
 pub mod plan;
+pub mod time;
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;

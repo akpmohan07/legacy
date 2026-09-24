@@ -164,9 +164,81 @@ pub fn plan_tools(
 }
 
 fn installed_event(tool: &DiscoveredTool) -> PlannedEvent {
+    installed_event_for(tool.version.as_deref())
+}
+
+fn installed_event_for(version: Option<&str>) -> PlannedEvent {
     PlannedEvent {
         event_type: EventType::Installed,
-        changes: Changes::installed(tool.version.as_deref()),
+        changes: Changes::installed(version),
+    }
+}
+
+/// A source (`/Applications`, Homebrew, ...) as it is on record.
+#[derive(Debug, Clone, PartialEq)]
+pub struct StoredSource {
+    pub status: Option<Status>,
+    pub version: Option<String>,
+    /// True once its first successful scan was recorded (`first_seen_at` is set).
+    pub recorded: bool,
+}
+
+/// What discovery saw for a source this run. A failed probe produces no plan at all.
+#[derive(Debug, Clone, PartialEq)]
+pub enum Observation {
+    Available { version: Option<String> },
+    NotPresent,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct SourceState {
+    pub status: Status,
+    pub version: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct SourcePlan {
+    pub change: Option<SourceState>,
+    /// Set `first_seen_at`: this is the source's first successful scan.
+    pub record_first_seen: bool,
+    pub event: Option<PlannedEvent>,
+}
+
+/// The source's own life cycle, using the same three events as tools. `first_run` is true when
+/// no source has ever been recorded: everything is then a baseline and gets no events.
+pub fn plan_source(stored: &StoredSource, observed: &Observation, first_run: bool) -> SourcePlan {
+    match observed {
+        Observation::Available { version } if !stored.recorded => SourcePlan {
+            change: Some(SourceState { status: Status::Installed, version: version.clone() }),
+            record_first_seen: true,
+            event: (!first_run).then(|| installed_event_for(version.as_deref())),
+        },
+        Observation::Available { version } if stored.status == Some(Status::Uninstalled) => SourcePlan {
+            change: Some(SourceState { status: Status::Installed, version: version.clone() }),
+            record_first_seen: false,
+            event: Some(installed_event_for(version.as_deref())),
+        },
+        Observation::Available { version } if *version != stored.version => SourcePlan {
+            change: Some(SourceState { status: Status::Installed, version: version.clone() }),
+            record_first_seen: false,
+            event: Some(PlannedEvent {
+                event_type: EventType::Updated,
+                changes: Changes::updated(stored.version.as_deref(), version.as_deref()),
+            }),
+        },
+        Observation::NotPresent
+            if stored.recorded && stored.status != Some(Status::Uninstalled) =>
+        {
+            SourcePlan {
+                change: Some(SourceState { status: Status::Uninstalled, version: stored.version.clone() }),
+                record_first_seen: false,
+                event: Some(PlannedEvent {
+                    event_type: EventType::Uninstalled,
+                    changes: Changes::uninstalled(stored.version.as_deref()),
+                }),
+            }
+        }
+        _ => SourcePlan::default(),
     }
 }
 
@@ -379,6 +451,92 @@ mod tests {
         );
         let order: Vec<&str> = plan.actions.iter().map(ToolAction::identifier).collect();
         assert_eq!(order, vec!["bat", "git", "zsh"]);
+    }
+
+    fn recorded(status: Status, version: Option<&str>) -> StoredSource {
+        StoredSource { status: Some(status), version: version.map(String::from), recorded: true }
+    }
+
+    fn never_recorded() -> StoredSource {
+        StoredSource { status: None, version: None, recorded: false }
+    }
+
+    fn seen(version: Option<&str>) -> Observation {
+        Observation::Available { version: version.map(String::from) }
+    }
+
+    fn source_event(plan: &SourcePlan) -> Option<(EventType, String)> {
+        plan.event.as_ref().map(|e| (e.event_type, e.changes.to_json()))
+    }
+
+    #[test]
+    fn a_source_seen_on_the_very_first_run_is_recorded_without_an_event() {
+        let plan = plan_source(&never_recorded(), &seen(None), true);
+
+        assert!(plan.record_first_seen);
+        assert_eq!(plan.change.unwrap().status, Status::Installed);
+        assert_eq!(plan.event, None);
+    }
+
+    #[test]
+    fn a_source_that_appears_later_gets_an_installed_event() {
+        let plan = plan_source(&never_recorded(), &seen(Some("4.6")), false);
+
+        assert!(plan.record_first_seen);
+        assert_eq!(
+            source_event(&plan),
+            Some((EventType::Installed, r#"{"version":[null,"4.6"]}"#.to_string()))
+        );
+    }
+
+    #[test]
+    fn an_unchanged_source_records_nothing() {
+        let plan = plan_source(&recorded(Status::Installed, Some("4.6")), &seen(Some("4.6")), false);
+        assert_eq!(plan, SourcePlan::default());
+    }
+
+    #[test]
+    fn a_source_version_change_is_an_updated_event() {
+        let plan = plan_source(&recorded(Status::Installed, Some("4.6")), &seen(Some("4.7")), false);
+
+        assert_eq!(plan.change.as_ref().unwrap().version.as_deref(), Some("4.7"));
+        assert_eq!(
+            source_event(&plan),
+            Some((EventType::Updated, r#"{"version":["4.6","4.7"]}"#.to_string()))
+        );
+    }
+
+    #[test]
+    fn a_source_that_vanishes_is_uninstalled_and_keeps_its_last_version() {
+        let plan = plan_source(&recorded(Status::Installed, Some("4.6")), &Observation::NotPresent, false);
+
+        let change = plan.change.as_ref().unwrap();
+        assert_eq!(change.status, Status::Uninstalled);
+        assert_eq!(change.version.as_deref(), Some("4.6"));
+        assert_eq!(
+            source_event(&plan),
+            Some((EventType::Uninstalled, r#"{"version":["4.6",null]}"#.to_string()))
+        );
+    }
+
+    #[test]
+    fn a_missing_source_that_was_never_installed_or_already_uninstalled_records_nothing() {
+        assert_eq!(plan_source(&never_recorded(), &Observation::NotPresent, false), SourcePlan::default());
+        assert_eq!(
+            plan_source(&recorded(Status::Uninstalled, None), &Observation::NotPresent, false),
+            SourcePlan::default()
+        );
+    }
+
+    #[test]
+    fn a_returning_source_is_installed_again_without_resetting_first_seen() {
+        let plan = plan_source(&recorded(Status::Uninstalled, Some("4.6")), &seen(Some("4.7")), false);
+
+        assert!(!plan.record_first_seen);
+        assert_eq!(
+            source_event(&plan),
+            Some((EventType::Installed, r#"{"version":[null,"4.7"]}"#.to_string()))
+        );
     }
 
     #[test]
