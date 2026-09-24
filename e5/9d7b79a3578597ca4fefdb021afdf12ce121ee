@@ -1,0 +1,36 @@
+detector/src/domain/time.rs
+  s_fc98096aee2827::t_9f44b325163032 1-42
+detector/src/domain/mod.rs
+  s_fc98096aee2827::t_686de1e8e13314 6
+detector/src/store/mod.rs
+  s_fc98096aee2827::t_3fcd13c0263270 1-4,6-7,9-10,13,26-40,99,116-219
+detector/src/domain/plan.rs
+  s_fc98096aee2827::t_142c1af8d4dc9b 167-170,173-241
+  s_fc98096aee2827::t_014358f0dd835c 456-541
+detector/src/store/apply.rs
+  s_fc98096aee2827::t_7122dff45524b8 1-183
+  s_fc98096aee2827::t_a07823cdcca07d 184-469
+.claude/custom_data/sessions/d82d6557-6e6b-47bb-87b4-04dd928def2d.json
+  s_fc98096aee2827::t_91ce0800f23a51 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e59d7b79a3578597ca4fefdb021afdf12ce121ee",
+  "prompts": {},
+  "humans": {
+    "h_f6c2af0c8aa8ab": {
+      "author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_fc98096aee2827": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d82d6557-6e6b-47bb-87b4-04dd928def2d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
