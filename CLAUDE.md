@@ -6,13 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Pre-build ideation and research for **Legacy** (formerly named "Loadout" — the rename is final, see Naming below). Legacy will be a tool that auto-detects a developer's full tool/hardware/app inventory on their own machine and presents it as a shareable, "Wrapped"-style retrospective of their tool history over time, rather than a live dashboard.
 
-There is no code yet — this repo currently holds only the planning documents below. No build, lint, or test commands apply.
+The repo holds the planning documents below and the Rust detector in `detector/`. **For any detector work (build, test, invariants, checklists), read `detector/AGENTS.md` first.**
 
 ## The documents
 
-Planning docs live in `docs/`; this file stays at repo root (that's where Claude Code looks for it). **See `docs/manifest.md` for what each file owns, what it must never contain, and the single-home rule that keeps them from drifting back into duplication.** Filenames: `docs/IDEATION.md` (decisions + why), `docs/ARCHITECTURE.md` (structure only), `docs/research-log.md` (chronological narrative), `docs/NORTH-STAR.md` (one-page pitch), `docs/related-products.md` (prior art), `docs/LESSONS.md` (reusable engineering guidelines), `docs/manifest.md` (this index's source), `CLAUDE.md` (this file — operational guidance only).
+Planning docs live in `docs/`; this file stays at repo root (that's where Claude Code looks for it). **See `docs/manifest.md` for what each file owns, what it must never contain, and the single-home rule that keeps them from drifting back into duplication.** Filenames: `docs/IDEATION.md` (product decisions + why), `docs/decisions/` (detector engineering decisions), `docs/ARCHITECTURE.md` (structure only), `docs/research-log.md` (chronological narrative), `docs/NORTH-STAR.md` (one-page pitch), `docs/related-products.md` (prior art), `docs/LESSONS.md` (reusable engineering guidelines), `docs/manifest.md` (this index's source), `CLAUDE.md` (this file — operational guidance only).
 
-When adding research or making a new decision in a future session: update `docs/IDEATION.md` for the standing conclusion + reasoning, add a dated entry to `docs/research-log.md` for the trail that produced it, update `docs/ARCHITECTURE.md` only if the *structure* changed — and check `docs/manifest.md` before writing an explanation anywhere, since that's the rule that prevents the duplication this section used to have.
+When adding research or making a new *product* decision in a future session (a detector engineering decision gets a record in `docs/decisions/` instead, see its README): update `docs/IDEATION.md` for the standing conclusion + reasoning, add a dated entry to `docs/research-log.md` for the trail that produced it, update `docs/ARCHITECTURE.md` only if the *structure* changed — and check `docs/manifest.md` before writing an explanation anywhere, since that's the rule that prevents the duplication this section used to have.
 
 ## Task tracking: every task is a GitHub issue on the Legacy project
 
