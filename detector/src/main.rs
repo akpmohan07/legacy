@@ -1,10 +1,5 @@
-mod identity;
-mod models;
-mod scanner;
-mod schema;
-mod store;
-
-use scanner::ScannerRegistry;
+use legacy_detector::scanner::ScannerRegistry;
+use legacy_detector::store;
 
 fn main() {
     let registry = ScannerRegistry::build();

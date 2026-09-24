@@ -40,11 +40,11 @@ diesel::table! {
         name -> Text,
         #[sql_name = "type"]
         type_ -> Text,
-        status -> Nullable<Text>,
         version -> Nullable<Text>,
         first_seen_at -> Nullable<Text>,
         installed_at -> Nullable<Text>,
         baselined_at -> Nullable<Text>,
+        status -> Nullable<Text>,
     }
 }
 
@@ -55,9 +55,9 @@ diesel::table! {
         source_id -> Integer,
         attributes -> Nullable<Text>,
         identifier -> Text,
-        status -> Text,
         first_seen_at -> Text,
         installed_at -> Nullable<Text>,
+        status -> Text,
     }
 }
 

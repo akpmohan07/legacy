@@ -1,31 +1,6 @@
 use crate::schema::{change_events, local_identity, scans, sources, tools};
 use diesel::prelude::*;
 
-/// Why a scan ran. Stored as plain text; this enum is the contract.
-/// Only `Manual` exists until the other triggers (watcher, scheduled, startup) are built.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum TriggeredBy {
-    Manual,
-    /// A value written by a newer version of Legacy that this build doesn't know.
-    Unknown(String),
-}
-
-impl TriggeredBy {
-    pub fn as_str(&self) -> &str {
-        match self {
-            TriggeredBy::Manual => "manual",
-            TriggeredBy::Unknown(raw) => raw,
-        }
-    }
-
-    pub fn parse(raw: &str) -> Self {
-        match raw {
-            "manual" => TriggeredBy::Manual,
-            other => TriggeredBy::Unknown(other.to_string()),
-        }
-    }
-}
-
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = sources)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
@@ -34,11 +9,11 @@ pub struct Source {
     pub name: String,
     #[diesel(column_name = type_)]
     pub source_type: String,
-    pub status: Option<String>,
     pub version: Option<String>,
     pub first_seen_at: Option<String>,
     pub installed_at: Option<String>,
     pub baselined_at: Option<String>,
+    pub status: Option<String>,
 }
 
 #[derive(Queryable, Selectable)]
@@ -50,9 +25,9 @@ pub struct Tool {
     pub source_id: i32,
     pub attributes: Option<String>,
     pub identifier: String,
-    pub status: String,
     pub first_seen_at: String,
     pub installed_at: Option<String>,
+    pub status: String,
 }
 
 #[derive(Insertable, AsChangeset)]
