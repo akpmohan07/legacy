@@ -1,0 +1,41 @@
+detector/src/schema.rs
+  s_fc98096aee2827::t_f169a308fdae74 47,60
+detector/migrations/2026-09-24-002031-0000_rename_status_to_installed_uninstalled/up.sql
+  s_fc98096aee2827::t_2db160cf90b3f7 1-8
+detector/src/models.rs
+  s_fc98096aee2827::t_9947bcfb03157c 30
+  s_fc98096aee2827::t_771351fc3d0117 16
+detector/src/lib.rs
+  s_fc98096aee2827::t_00f9dd9042efa8 1-6
+detector/src/main.rs
+  s_fc98096aee2827::t_7abe4da917b008 1-2
+detector/migrations/2026-09-24-002031-0000_rename_status_to_installed_uninstalled/down.sql
+  s_fc98096aee2827::t_7ffb54bde67bb8 1-7
+detector/src/domain/mod.rs
+  s_fc98096aee2827::t_0aaca7ac1bd2f1 33-34,37-38,44-45,51-52
+  s_fc98096aee2827::t_98c677d1c4fcfc 144,147-148
+  s_fc98096aee2827::t_2af6d56de7c5fa 1-32,35-36,39-43,46-50,53-143,145-146,149-179
+.claude/custom_data/sessions/d82d6557-6e6b-47bb-87b4-04dd928def2d.json
+  s_fc98096aee2827::t_739c8bb67c5d43 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ada5601e6607621c29be53aa47ce2193dfe5ddb7",
+  "prompts": {},
+  "humans": {
+    "h_f6c2af0c8aa8ab": {
+      "author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_fc98096aee2827": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d82d6557-6e6b-47bb-87b4-04dd928def2d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
