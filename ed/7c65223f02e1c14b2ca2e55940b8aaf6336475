@@ -1,0 +1,43 @@
+docs/features/README.md
+  s_fc98096aee2827::t_67cceb9d1b273c 1-19
+docs/features/scan-run.md
+  s_fc98096aee2827::t_332a66a0212d20 1-62
+docs/features/automatic-monitoring.md
+  s_fc98096aee2827::t_64997ffa821e90 1-30
+docs/features/local-identity.md
+  s_fc98096aee2827::t_735253736354ae 1-42
+docs/sources/README.md
+  s_fc98096aee2827::t_fb6222fe8c9daa 1-33
+docs/features/change-events.md
+  s_fc98096aee2827::t_b12fd16accd91f 1-73
+docs/sources/application.md
+  s_fc98096aee2827::t_71983b550ee411 1-40,43-52
+  s_fc98096aee2827::t_8e3bf684e1fec2 41-42
+docs/sources/homebrew-cellar.md
+  s_fc98096aee2827::t_210f17bb029785 1-30,35-54
+  s_fc98096aee2827::t_c7e93e8e234a8c 31-34
+docs/manifest.md
+  s_fc98096aee2827::t_e6091c8081f84d 19-21
+  s_fc98096aee2827::t_08cddd0d890cf4 32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ed7c65223f02e1c14b2ca2e55940b8aaf6336475",
+  "prompts": {},
+  "humans": {
+    "h_f6c2af0c8aa8ab": {
+      "author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_fc98096aee2827": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d82d6557-6e6b-47bb-87b4-04dd928def2d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
