@@ -27,7 +27,7 @@ pub enum ToolAction {
     /// Never seen before.
     Insert { tool: DiscoveredTool, event: Option<PlannedEvent> },
     /// Was uninstalled, found again.
-    MarkInstalled { id: i32, tool: DiscoveredTool, event: Option<PlannedEvent> },
+    MarkReinstalled { id: i32, tool: DiscoveredTool, event: Option<PlannedEvent> },
     /// Still installed, version differs.
     UpdateVersion { id: i32, tool: DiscoveredTool, event: Option<PlannedEvent> },
     /// Still installed, nothing worth an event; refresh stored details.
@@ -40,7 +40,7 @@ impl ToolAction {
     pub fn identifier(&self) -> &str {
         match self {
             ToolAction::Insert { tool, .. }
-            | ToolAction::MarkInstalled { tool, .. }
+            | ToolAction::MarkReinstalled { tool, .. }
             | ToolAction::UpdateVersion { tool, .. }
             | ToolAction::Refresh { tool, .. } => &tool.identifier,
             ToolAction::MarkUninstalled { identifier, .. } => identifier,
@@ -50,7 +50,7 @@ impl ToolAction {
     pub fn event(&self) -> Option<&PlannedEvent> {
         match self {
             ToolAction::Insert { event, .. }
-            | ToolAction::MarkInstalled { event, .. }
+            | ToolAction::MarkReinstalled { event, .. }
             | ToolAction::UpdateVersion { event, .. }
             | ToolAction::MarkUninstalled { event, .. } => event.as_ref(),
             ToolAction::Refresh { .. } => None,
@@ -60,8 +60,8 @@ impl ToolAction {
     fn without_event(self) -> Self {
         match self {
             ToolAction::Insert { tool, .. } => ToolAction::Insert { tool, event: None },
-            ToolAction::MarkInstalled { id, tool, .. } => {
-                ToolAction::MarkInstalled { id, tool, event: None }
+            ToolAction::MarkReinstalled { id, tool, .. } => {
+                ToolAction::MarkReinstalled { id, tool, event: None }
             }
             ToolAction::UpdateVersion { id, tool, .. } => {
                 ToolAction::UpdateVersion { id, tool, event: None }
@@ -117,7 +117,7 @@ pub fn plan_tools(
                 event: Some(installed_event(&tool)),
                 tool,
             },
-            Some(existing) if existing.status == Status::Uninstalled => ToolAction::MarkInstalled {
+            Some(existing) if existing.status == Status::Uninstalled => ToolAction::MarkReinstalled {
                 id: existing.id,
                 event: Some(installed_event(&tool)),
                 tool,
@@ -317,7 +317,7 @@ mod tests {
         let stored = [stored(1, "git", Some("2.1"), Status::Uninstalled)];
         let plan = plan_tools(&stored, &[found("git", Some("2.3"))], false, gone);
 
-        assert!(matches!(plan.actions[0], ToolAction::MarkInstalled { id: 1, .. }));
+        assert!(matches!(plan.actions[0], ToolAction::MarkReinstalled { id: 1, .. }));
         assert_eq!(
             events(&plan),
             vec![(EventType::Installed, r#"{"version":[null,"2.3"]}"#.to_string())]
