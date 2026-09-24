@@ -1,0 +1,30 @@
+detector/AGENTS.md
+  s_fc98096aee2827::t_be8689003686b6 1-65
+CLAUDE.md
+  s_fc98096aee2827::t_456e535c54c1ca 13
+  s_fc98096aee2827::t_3329014691b921 9
+  s_fc98096aee2827::t_de7b0b52beffea 15
+.claude/custom_data/sessions/d82d6557-6e6b-47bb-87b4-04dd928def2d.json
+  s_fc98096aee2827::t_825f142c85a86d 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c52157f315c12f0a050334a8129405fd7cad54f4",
+  "prompts": {},
+  "humans": {
+    "h_f6c2af0c8aa8ab": {
+      "author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_fc98096aee2827": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d82d6557-6e6b-47bb-87b4-04dd928def2d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
