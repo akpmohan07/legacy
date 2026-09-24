@@ -1,18 +1,9 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 #[cfg(target_os = "macos")]
 pub mod macos;
 
-/// The one canonical shape every Scanner normalizes into,
-/// regardless of what source or platform produced it.
-pub struct DiscoveredTool {
-    pub identifier: String,
-    pub name: String,
-    pub version: Option<String>,
-    pub path: PathBuf,
-    /// When the source says it was really installed (Unix seconds), if it knows.
-    pub installed_at: Option<i64>,
-}
+pub use crate::domain::{Absence, DiscoveredTool};
 
 #[derive(Debug)]
 pub enum ScanError {
@@ -33,14 +24,6 @@ pub enum Probe {
     Available { version: Option<String> },
     NotPresent,
     Failed(ScanError),
-}
-
-/// Whether a tool we failed to find is really gone.
-#[derive(Debug, PartialEq, Eq)]
-pub enum Absence {
-    Gone,
-    StillThere,
-    Unknown,
 }
 
 /// What Legacy already knows about a tool that this scan did not find.
@@ -135,7 +118,7 @@ impl ScannerRegistry {
 }
 
 #[cfg(test)]
-pub(crate) fn temp_dir(name: &str) -> PathBuf {
+pub(crate) fn temp_dir(name: &str) -> std::path::PathBuf {
     let dir = std::env::temp_dir().join(format!("legacy-test-{}-{}", std::process::id(), name));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();

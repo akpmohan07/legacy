@@ -2,7 +2,30 @@
 //! SQLite keeps the text; these types are the single source of truth for what is allowed.
 //! Nothing here touches the database or the filesystem.
 
+pub mod plan;
+
 use std::collections::BTreeMap;
+use std::path::PathBuf;
+
+/// The one canonical shape every Scanner normalizes into,
+/// regardless of what source or platform produced it.
+#[derive(Debug, Clone, PartialEq)]
+pub struct DiscoveredTool {
+    pub identifier: String,
+    pub name: String,
+    pub version: Option<String>,
+    pub path: PathBuf,
+    /// When the source says it was really installed (Unix seconds), if it knows.
+    pub installed_at: Option<i64>,
+}
+
+/// Whether a tool we failed to find is really gone.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Absence {
+    Gone,
+    StillThere,
+    Unknown,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EventType {
