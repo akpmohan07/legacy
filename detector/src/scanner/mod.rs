@@ -18,6 +18,15 @@ impl From<std::io::Error> for ScanError {
     }
 }
 
+impl std::fmt::Display for ScanError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ScanError::Io(err) => write!(f, "{err}"),
+            ScanError::SourceMissing => write!(f, "source not found on this machine"),
+        }
+    }
+}
+
 /// What a source's discovery step found.
 #[derive(Debug)]
 pub enum Probe {
@@ -87,6 +96,10 @@ impl ScannerRegistry {
         Self { scanners }
     }
 
+    pub fn from_scanners(scanners: Vec<Box<dyn Scanner>>) -> Self {
+        Self { scanners }
+    }
+
     /// Source discovery: ask every scanner whether its source is on this machine.
     pub fn discover(&self) -> Vec<SourceProbe<'_>> {
         self.scanners
@@ -96,24 +109,6 @@ impl ScannerRegistry {
                 probe: scanner.probe(),
             })
             .collect()
-    }
-
-    /// Each result is paired with the `sources.name` it came from,
-    /// since that association only exists at the scanner level.
-    pub fn scan_all(&self) -> Vec<(&'static str, DiscoveredTool)> {
-        let mut results = Vec::new();
-
-        for scanner in &self.scanners {
-            match scanner.scan() {
-                Ok(tools) => {
-                    let source_name = scanner.source_name();
-                    results.extend(tools.into_iter().map(|tool| (source_name, tool)));
-                }
-                Err(err) => eprintln!("scanner failed: {:?}", err),
-            }
-        }
-
-        results
     }
 }
 

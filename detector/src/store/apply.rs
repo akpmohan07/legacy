@@ -22,7 +22,7 @@ pub struct ApplyReport {
     pub uninstalled: u32,
 }
 
-fn now_utc() -> String {
+pub(super) fn now_utc() -> String {
     let seconds = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map(|elapsed| elapsed.as_secs() as i64)
@@ -57,6 +57,13 @@ impl Store {
                 }
                 Observation::NotPresent => None,
             };
+            for kept in tool_plan.iter().flat_map(|plan| &plan.kept) {
+                tracing::debug!(
+                    identifier = %kept.identifier,
+                    absence = ?kept.absence,
+                    "not found this scan but not confirmed gone; left alone"
+                );
+            }
             write_plans(conn, scan_id, source_id, &source_plan, tool_plan.as_ref())
         })
     }

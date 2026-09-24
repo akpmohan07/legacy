@@ -3,7 +3,7 @@ pub mod apply;
 use crate::domain::plan::{StoredSource, StoredTool};
 use crate::domain::{DiscoveredTool, Status, TriggeredBy};
 use crate::identity;
-use crate::models::{NewLocalIdentity, NewScan, NewTool, Source, Tool};
+use crate::models::{NewLocalIdentity, NewScan, Source, Tool};
 use crate::schema::{scans, sources, tools};
 use diesel::connection::SimpleConnection;
 use diesel::prelude::*;
@@ -94,32 +94,6 @@ fn ensure_local_identity(conn: &mut SqliteConnection) {
         .values(&new_identity)
         .execute(conn)
         .expect("failed to insert local_identity");
-}
-
-pub fn upsert_tool(conn: &mut SqliteConnection, source_name: &str, tool: &DiscoveredTool) {
-    let source_id = sources::table
-        .filter(sources::name.eq(source_name))
-        .select(sources::id)
-        .first::<Option<i32>>(conn)
-        .unwrap_or_else(|_| panic!("unknown source: {source_name} (not seeded?)"))
-        .expect("sources.id is never actually null once a row exists");
-
-    let attributes = attributes_json(tool);
-
-    let new_tool = NewTool {
-        name: &tool.name,
-        source_id,
-        attributes: Some(&attributes),
-        identifier: &tool.identifier,
-    };
-
-    diesel::insert_into(tools::table)
-        .values(&new_tool)
-        .on_conflict((tools::source_id, tools::identifier))
-        .do_update()
-        .set(&new_tool)
-        .execute(conn)
-        .expect("failed to upsert tool");
 }
 
 fn corrupt(message: String) -> DbError {
@@ -235,6 +209,15 @@ impl Store {
             .returning(scans::id)
             .get_result::<Option<i32>>(&mut self.conn)?
             .ok_or(DbError::NotFound)
+    }
+
+    /// The installation's heartbeat: when Legacy last ran on this machine.
+    pub fn touch_identity(&mut self) -> QueryResult<()> {
+        use crate::schema::local_identity;
+        diesel::update(local_identity::table)
+            .set(local_identity::last_seen_at.eq(Some(apply::now_utc())))
+            .execute(&mut self.conn)?;
+        Ok(())
     }
 
     /// One random id shared by every scan of a single run.
