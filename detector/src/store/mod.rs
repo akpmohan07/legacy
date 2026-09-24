@@ -5,6 +5,7 @@ use crate::domain::{DiscoveredTool, Status, TriggeredBy};
 use crate::identity;
 use crate::models::{NewLocalIdentity, NewScan, NewTool, Source, Tool};
 use crate::schema::{scans, sources, tools};
+use diesel::connection::SimpleConnection;
 use diesel::prelude::*;
 use diesel::result::Error as DbError;
 use diesel::sql_types::Text;
@@ -44,6 +45,12 @@ fn app_data_dir() -> PathBuf {
         .join("Legacy")
 }
 
+/// A second writer waits (up to 5 seconds) for the first to finish instead of failing at once.
+fn configure(conn: &mut SqliteConnection) {
+    conn.batch_execute("PRAGMA busy_timeout = 5000;")
+        .expect("failed to set busy_timeout");
+}
+
 pub fn open_store() -> SqliteConnection {
     let dir = app_data_dir();
     std::fs::create_dir_all(&dir).expect("failed to create app-data directory");
@@ -52,6 +59,7 @@ pub fn open_store() -> SqliteConnection {
     let mut conn = SqliteConnection::establish(db_path.to_str().unwrap())
         .unwrap_or_else(|err| panic!("failed to open {:?}: {}", db_path, err));
 
+    configure(&mut conn);
     conn.run_pending_migrations(MIGRATIONS)
         .expect("failed to run migrations");
 
@@ -118,6 +126,59 @@ fn corrupt(message: String) -> DbError {
     DbError::DeserializationError(message.into())
 }
 
+fn read_first_run(conn: &mut SqliteConnection) -> QueryResult<bool> {
+    let recorded: i64 = sources::table
+        .filter(sources::first_seen_at.is_not_null())
+        .count()
+        .get_result(conn)?;
+    Ok(recorded == 0)
+}
+
+pub(crate) fn read_source(conn: &mut SqliteConnection, source_id: i32) -> QueryResult<StoredSource> {
+    let row: Source = sources::table
+        .filter(sources::id.eq(source_id))
+        .select(Source::as_select())
+        .first(conn)?;
+
+    let status = match row.status.as_deref() {
+        None => None,
+        Some(raw) => Some(
+            Status::parse(raw).ok_or_else(|| corrupt(format!("unknown source status {raw:?}")))?,
+        ),
+    };
+    Ok(StoredSource {
+        status,
+        version: row.version,
+        recorded: row.first_seen_at.is_some(),
+    })
+}
+
+pub(crate) fn read_tools(conn: &mut SqliteConnection, source_id: i32) -> QueryResult<Vec<StoredTool>> {
+    let rows: Vec<Tool> = tools::table
+        .filter(tools::source_id.eq(source_id))
+        .select(Tool::as_select())
+        .load(conn)?;
+
+    rows.into_iter()
+        .map(|row| {
+            let status = Status::parse(&row.status)
+                .ok_or_else(|| corrupt(format!("unknown tool status {:?}", row.status)))?;
+            let attributes: StoredAttributes = row
+                .attributes
+                .as_deref()
+                .and_then(|raw| serde_json::from_str(raw).ok())
+                .unwrap_or_default();
+            Ok(StoredTool {
+                id: row.id.ok_or(DbError::NotFound)?,
+                identifier: row.identifier,
+                version: attributes.version,
+                path: attributes.path.map(PathBuf::from),
+                status,
+            })
+        })
+        .collect()
+}
+
 /// The working store: the only place that talks to SQLite. Speaks in domain types.
 pub struct Store {
     pub(crate) conn: SqliteConnection,
@@ -135,13 +196,19 @@ impl Store {
         Store { conn }
     }
 
-    /// True when no source has ever had a successful scan recorded.
+    /// A store on a real file, opened the same way the app opens its own (busy timeout included).
+    #[cfg(test)]
+    pub fn open_at(path: &std::path::Path) -> Store {
+        let mut conn = SqliteConnection::establish(path.to_str().unwrap()).expect("database file");
+        configure(&mut conn);
+        conn.run_pending_migrations(MIGRATIONS).expect("migrations");
+        Store { conn }
+    }
+
+    /// True when no source has ever had a successful scan recorded. Evaluated once at the start of
+    /// a run, so every source in that run is treated the same way.
     pub fn is_first_run(&mut self) -> QueryResult<bool> {
-        let recorded: i64 = sources::table
-            .filter(sources::first_seen_at.is_not_null())
-            .count()
-            .get_result(&mut self.conn)?;
-        Ok(recorded == 0)
+        read_first_run(&mut self.conn)
     }
 
     pub fn source_id(&mut self, source_name: &str) -> QueryResult<i32> {
@@ -153,49 +220,14 @@ impl Store {
     }
 
     pub fn load_source(&mut self, source_id: i32) -> QueryResult<StoredSource> {
-        let row: Source = sources::table
-            .filter(sources::id.eq(source_id))
-            .select(Source::as_select())
-            .first(&mut self.conn)?;
-
-        let status = match row.status.as_deref() {
-            None => None,
-            Some(raw) => Some(Status::parse(raw).ok_or_else(|| corrupt(format!("unknown source status {raw:?}")))?),
-        };
-        Ok(StoredSource {
-            status,
-            version: row.version,
-            recorded: row.first_seen_at.is_some(),
-        })
+        read_source(&mut self.conn, source_id)
     }
 
     pub fn load_tools(&mut self, source_id: i32) -> QueryResult<Vec<StoredTool>> {
-        let rows: Vec<Tool> = tools::table
-            .filter(tools::source_id.eq(source_id))
-            .select(Tool::as_select())
-            .load(&mut self.conn)?;
-
-        rows.into_iter()
-            .map(|row| {
-                let status = Status::parse(&row.status)
-                    .ok_or_else(|| corrupt(format!("unknown tool status {:?}", row.status)))?;
-                let attributes: StoredAttributes = row
-                    .attributes
-                    .as_deref()
-                    .and_then(|raw| serde_json::from_str(raw).ok())
-                    .unwrap_or_default();
-                Ok(StoredTool {
-                    id: row.id.ok_or(DbError::NotFound)?,
-                    identifier: row.identifier,
-                    version: attributes.version,
-                    path: attributes.path.map(PathBuf::from),
-                    status,
-                })
-            })
-            .collect()
+        read_tools(&mut self.conn, source_id)
     }
 
-    /// Opens a scan row. `finished_at` stays empty until `apply_scan` succeeds, so a scan that
+    /// Opens a scan row. `finished_at` stays empty until `record_scan` succeeds, so a scan that
     /// fails or crashes never counts as a check.
     pub fn begin_scan(&mut self, run_id: &str, source_id: i32, by: &TriggeredBy) -> QueryResult<i32> {
         diesel::insert_into(scans::table)

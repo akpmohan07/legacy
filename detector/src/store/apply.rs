@@ -1,10 +1,12 @@
 //! Writing a plan: everything one source scan decided, saved in a single write transaction.
 //! If anything fails, nothing is saved and the scan's `finished_at` stays empty.
 
-use super::{attributes_json, Store};
-use crate::domain::plan::{PlannedEvent, SourcePlan, ToolAction, ToolPlan};
+use super::{attributes_json, read_source, read_tools, Store};
+use crate::domain::plan::{
+    plan_source, plan_tools, Observation, PlannedEvent, SourcePlan, StoredTool, ToolAction, ToolPlan,
+};
 use crate::domain::time::utc_string;
-use crate::domain::{DiscoveredTool, EventType, Status};
+use crate::domain::{Absence, DiscoveredTool, EventType, Status};
 use crate::models::{NewChangeEvent, NewTool};
 use crate::schema::{change_events, scans, sources, tools};
 use diesel::prelude::*;
@@ -29,30 +31,58 @@ fn now_utc() -> String {
 }
 
 impl Store {
-    /// Saves one source scan. `tools` is `None` when the source wasn't scanned (it is not present).
-    pub fn apply_scan(
+    /// Saves one source scan. What is on record is read, the plan is decided, and the result is
+    /// written all inside ONE write transaction. SQLite lets only one writer in at a time, so a
+    /// second overlapping run waits, then plans from what the first run left and finds nothing
+    /// new to record: no duplicate events, whatever the timing. If anything fails, nothing is
+    /// saved and `finished_at` stays empty.
+    ///
+    /// `found` is ignored when the source is `NotPresent` (it wasn't scanned).
+    pub fn record_scan(
         &mut self,
         scan_id: i32,
         source_id: i32,
-        source: &SourcePlan,
-        tools: Option<&ToolPlan>,
+        first_run: bool,
+        observed: &Observation,
+        found: &[DiscoveredTool],
+        confirm_absent: impl Fn(&StoredTool) -> Absence,
     ) -> QueryResult<ApplyReport> {
         self.conn.immediate_transaction(|conn| {
-            let mut report = ApplyReport::default();
-
-            if let Some(plan) = tools {
-                for action in &plan.actions {
-                    apply_tool_action(conn, scan_id, source_id, action, &mut report)?;
+            let stored_source = read_source(conn, source_id)?;
+            let source_plan = plan_source(&stored_source, observed, first_run);
+            let tool_plan = match observed {
+                Observation::Available { .. } => {
+                    let stored = read_tools(conn, source_id)?;
+                    Some(plan_tools(&stored, found, !stored_source.recorded, &confirm_absent))
                 }
-            }
-            apply_source_plan(conn, scan_id, source_id, source, &mut report)?;
-
-            diesel::update(scans::table.filter(scans::id.eq(scan_id)))
-                .set(scans::finished_at.eq(Some(now_utc())))
-                .execute(conn)?;
-            Ok(report)
+                Observation::NotPresent => None,
+            };
+            write_plans(conn, scan_id, source_id, &source_plan, tool_plan.as_ref())
         })
     }
+}
+
+/// Runs inside the write transaction. `tools` is `None` when the source wasn't scanned.
+fn write_plans(
+    conn: &mut SqliteConnection,
+    scan_id: i32,
+    source_id: i32,
+    source: &SourcePlan,
+    tools: Option<&ToolPlan>,
+) -> QueryResult<ApplyReport> {
+    let mut report = ApplyReport::default();
+
+    if let Some(plan) = tools {
+        for action in &plan.actions {
+            apply_tool_action(conn, scan_id, source_id, action, &mut report)?;
+        }
+    }
+    apply_source_plan(conn, scan_id, source_id, source, &mut report)?;
+
+    diesel::update(scans::table.filter(scans::id.eq(scan_id)))
+        .set(scans::finished_at.eq(Some(now_utc())))
+        .execute(conn)?;
+    Ok(report)
 }
 
 fn apply_tool_action(
@@ -185,10 +215,11 @@ fn insert_event(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::plan::{plan_source, plan_tools, Observation};
-    use crate::domain::{Absence, Changes, TriggeredBy};
+    use crate::domain::{Changes, TriggeredBy};
     use crate::models::{ChangeEvent, Scan, Tool};
     use std::path::PathBuf;
+    use std::sync::{Arc, Barrier};
+    use std::time::Duration;
 
     const APP: &str = "application";
     const BREW: &str = "homebrew-cellar";
@@ -219,16 +250,31 @@ mod tests {
         let source_id = store.source_id(source).unwrap();
         let run_id = store.new_run_id().unwrap();
         let scan_id = store.begin_scan(&run_id, source_id, &TriggeredBy::Manual).unwrap();
-        let stored_source = store.load_source(source_id).unwrap();
-        let source_plan = plan_source(&stored_source, &observed, first_run);
-        let tool_plan = match observed {
-            Observation::Available { .. } => {
-                let stored = store.load_tools(source_id).unwrap();
-                Some(plan_tools(&stored, found, !stored_source.recorded, |_| absence))
-            }
-            Observation::NotPresent => None,
-        };
-        store.apply_scan(scan_id, source_id, &source_plan, tool_plan.as_ref()).unwrap()
+        store
+            .record_scan(scan_id, source_id, first_run, &observed, found, |_| absence)
+            .unwrap()
+    }
+
+    /// Writes hand-made plans in one transaction, bypassing the planner.
+    fn apply_plans(
+        store: &mut Store,
+        scan_id: i32,
+        source_id: i32,
+        source: &SourcePlan,
+        tools: Option<&ToolPlan>,
+    ) -> QueryResult<ApplyReport> {
+        store
+            .conn
+            .immediate_transaction(|conn| write_plans(conn, scan_id, source_id, source, tools))
+    }
+
+    /// A scan that has started but not yet been recorded: (scan id, source id, first_run).
+    fn started(store: &mut Store, source: &str) -> (i32, i32, bool) {
+        let first_run = store.is_first_run().unwrap();
+        let source_id = store.source_id(source).unwrap();
+        let run_id = store.new_run_id().unwrap();
+        let scan_id = store.begin_scan(&run_id, source_id, &TriggeredBy::Manual).unwrap();
+        (scan_id, source_id, first_run)
     }
 
     fn events(store: &mut Store) -> Vec<ChangeEvent> {
@@ -407,7 +453,7 @@ mod tests {
         let plan = ToolPlan { actions: vec![insert(), insert()], kept: vec![] };
         let source_plan = plan_source(&store.load_source(source_id).unwrap(), &available(), false);
 
-        assert!(store.apply_scan(scan_id, source_id, &source_plan, Some(&plan)).is_err());
+        assert!(apply_plans(&mut store, scan_id, source_id, &source_plan, Some(&plan)).is_err());
 
         assert_eq!(tool_rows(&mut store).len(), 0);
         assert_eq!(summary(&mut store), vec![]);
@@ -449,6 +495,119 @@ mod tests {
             vec![("installed".to_string(), false, r#"{"version":[null,null]}"#.to_string())]
         );
         assert_eq!(tool_rows(&mut store).len(), 2);
+    }
+
+    #[test]
+    fn two_runs_that_saw_the_same_old_state_record_a_version_change_once() {
+        let mut store = Store::in_memory();
+        scan_source(&mut store, APP, available(), &[found("git", Some("2.1"))], Absence::Gone);
+
+        // Both runs started, and saw version 2.1 on record, before either was recorded.
+        let (scan_a, source_id, first_run) = started(&mut store, APP);
+        let (scan_b, _, _) = started(&mut store, APP);
+        let newer = [found("git", Some("2.2"))];
+
+        let a = store.record_scan(scan_a, source_id, first_run, &available(), &newer, |_| Absence::Gone).unwrap();
+        let b = store.record_scan(scan_b, source_id, first_run, &available(), &newer, |_| Absence::Gone).unwrap();
+
+        assert_eq!(a.updated, 1);
+        assert_eq!(b, ApplyReport::default());
+        assert_eq!(summary(&mut store).len(), 1);
+    }
+
+    #[test]
+    fn two_runs_that_both_see_a_new_tool_insert_it_once_without_an_error() {
+        let mut store = Store::in_memory();
+        scan_source(&mut store, APP, available(), &[found("git", Some("2.1"))], Absence::Gone);
+
+        let (scan_a, source_id, first_run) = started(&mut store, APP);
+        let (scan_b, _, _) = started(&mut store, APP);
+        let both = [found("git", Some("2.1")), found("bat", Some("0.24"))];
+
+        store.record_scan(scan_a, source_id, first_run, &available(), &both, |_| Absence::Gone).unwrap();
+        store.record_scan(scan_b, source_id, first_run, &available(), &both, |_| Absence::Gone).unwrap();
+
+        assert_eq!(tool_rows(&mut store).len(), 2);
+        assert_eq!(summary(&mut store).len(), 1);
+    }
+
+    #[test]
+    fn two_runs_that_both_see_a_tool_missing_record_the_uninstall_once() {
+        let mut store = Store::in_memory();
+        scan_source(&mut store, APP, available(), &[found("git", Some("2.1"))], Absence::Gone);
+
+        let (scan_a, source_id, first_run) = started(&mut store, APP);
+        let (scan_b, _, _) = started(&mut store, APP);
+
+        store.record_scan(scan_a, source_id, first_run, &available(), &[], |_| Absence::Gone).unwrap();
+        store.record_scan(scan_b, source_id, first_run, &available(), &[], |_| Absence::Gone).unwrap();
+
+        assert_eq!(summary(&mut store).len(), 1);
+    }
+
+    #[test]
+    fn two_first_runs_started_together_do_not_double_baseline_or_invent_events() {
+        let mut store = Store::in_memory();
+        let (scan_a, source_id, first_run_a) = started(&mut store, APP);
+        let (scan_b, _, first_run_b) = started(&mut store, APP);
+        assert!(first_run_a && first_run_b);
+        let tools = [found("git", Some("2.1"))];
+
+        store.record_scan(scan_a, source_id, first_run_a, &available(), &tools, |_| Absence::Gone).unwrap();
+        store.record_scan(scan_b, source_id, first_run_b, &available(), &tools, |_| Absence::Gone).unwrap();
+
+        assert_eq!(summary(&mut store), vec![]);
+        assert_eq!(tool_rows(&mut store).len(), 1);
+    }
+
+    #[test]
+    fn two_connections_racing_with_the_same_old_view_record_each_change_exactly_once() {
+        let path = std::env::temp_dir().join(format!("legacy-race-{}.db", std::process::id()));
+        let _ = std::fs::remove_file(&path);
+
+        let mut setup = Store::open_at(&path);
+        scan_source(&mut setup, APP, available(), &[found("git", Some("2.1")), found("slow", Some("1.0"))], Absence::Gone);
+        drop(setup);
+
+        // Both threads see git 2.1 and "slow" on record. Only git 2.2 is found this time, and
+        // confirming that "slow" is gone takes a while, so the first writer holds the lock long
+        // enough for the second to arrive and have to wait for it.
+        let barrier = Arc::new(Barrier::new(2));
+        // Everything that could fail is done before the barrier, so one failing thread can't
+        // leave the other waiting forever.
+        let prepared: Vec<_> = (0..2)
+            .map(|_| {
+                let mut store = Store::open_at(&path);
+                let (scan_id, source_id, first_run) = started(&mut store, APP);
+                (store, scan_id, source_id, first_run)
+            })
+            .collect();
+        let handles: Vec<_> = prepared
+            .into_iter()
+            .map(|(mut store, scan_id, source_id, first_run)| {
+                let barrier = Arc::clone(&barrier);
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    store
+                        .record_scan(scan_id, source_id, first_run, &available(), &[found("git", Some("2.2"))], |tool| {
+                            if tool.identifier == "slow" {
+                                std::thread::sleep(Duration::from_millis(300));
+                            }
+                            Absence::Gone
+                        })
+                        .unwrap()
+                })
+            })
+            .collect();
+        let reports: Vec<ApplyReport> = handles.into_iter().map(|h| h.join().unwrap()).collect();
+
+        let mut store = Store::open_at(&path);
+        let mut kinds: Vec<String> = summary(&mut store).into_iter().map(|(kind, _, _)| kind).collect();
+        kinds.sort();
+        assert_eq!(kinds, vec!["uninstalled", "updated"]);
+        assert_eq!(reports.iter().map(|r| r.updated + r.uninstalled).sum::<u32>(), 2);
+        assert!(scan_rows(&mut store).iter().all(|scan| scan.finished_at.is_some()));
+        let _ = std::fs::remove_file(&path);
     }
 
     #[test]
