@@ -24,7 +24,11 @@ other cosmetic choices belong in the feature doc, `detector/AGENTS.md`, or `docs
 
 | # | Decision | Status |
 |---|---|---|
+| [0004](0004-migrations-tested-through-the-apps-sqlite.md) | Migrations are embedded and tested through the app's own SQLite | accepted |
 | [0005](0005-change-events-are-transitions.md) | Change events are transitions | accepted |
 | [0006](0006-baseline-per-source.md) | Baseline per source, derived from `sources.first_seen_at` | accepted |
 | [0007](0007-scans-per-source-and-freshness.md) | Scans per source, and freshness | accepted |
 | [0008](0008-uninstall-only-when-confirmed-gone.md) | Uninstall only when confirmed gone | accepted |
+| [0009](0009-pure-planner-separate-writer.md) | A pure planner, a separate writer, a Store struct, and a lib plus binary | accepted |
+| [0010](0010-plan-inside-the-write-transaction.md) | Plan inside the write transaction | accepted |
+| [0011](0011-error-policy-and-exit-codes.md) | Error policy, exit codes, and logging | accepted |
