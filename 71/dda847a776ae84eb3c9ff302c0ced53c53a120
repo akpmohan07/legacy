@@ -1,0 +1,36 @@
+detector/src/store/mod.rs
+  s_fc98096aee2827::t_4b93dee2565900 8,48-49,51-53,62,129-181,199-209,211,223,227,230
+  s_fc98096aee2827::t_b30e0265067d3f 50
+detector/src/store/apply.rs
+  s_fc98096aee2827::t_028c0f76df3ba0 576-578,580-588
+  s_fc98096aee2827::t_79ee7068864e18 34-41,45-48,51-56,58-60,65-85
+  s_fc98096aee2827::t_47473f327705c5 253-277
+  s_fc98096aee2827::t_75130191babb5a 500-575,579,589-612
+  s_fc98096aee2827::t_6cedcbfce67cce 4-7,9
+  s_fc98096aee2827::t_bc673fc4746e8f 218,221-222
+  s_fc98096aee2827::t_2d3f8fd8e01dbf 456
+  s_fc98096aee2827::t_4639618670a020 86-87
+.claude/custom_data/sessions/d82d6557-6e6b-47bb-87b4-04dd928def2d.json
+  s_fc98096aee2827::t_bb059b3ce8f1be 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "71dda847a776ae84eb3c9ff302c0ced53c53a120",
+  "prompts": {},
+  "humans": {
+    "h_f6c2af0c8aa8ab": {
+      "author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_fc98096aee2827": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d82d6557-6e6b-47bb-87b4-04dd928def2d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
