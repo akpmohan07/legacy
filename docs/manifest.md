@@ -8,13 +8,14 @@ What each planning doc in this repo owns, so any piece of information has exactl
 
 ## The rule
 
-Before writing an explanation anywhere, ask: **which file owns this kind of information?** Put it only there. Everywhere else gets a pointer (doc name + section), never a restatement. If a "why" sentence is being written in anything other than `IDEATION.md`, that's the signal something is about to get duplicated again.
+Before writing an explanation anywhere, ask: **which file owns this kind of information?** Put it only there. Everywhere else gets a pointer (doc name + section), never a restatement. If a "why" sentence is being written in anything other than `IDEATION.md` (product/strategy) or `decisions/` (detector engineering), that's the signal something is about to get duplicated again.
 
 ## Ownership
 
 | File | Owns | Never contains | May reference |
 |---|---|---|---|
-| **`IDEATION.md`** | Decisions **and their full reasoning** — the "why." Canonical "Open, not yet decided" list. | — this is the root; nothing outranks it | — |
+| **`IDEATION.md`** | **Product and strategy** decisions **and their full reasoning** — the "why." Canonical "Open, not yet decided" list. (The detector's *engineering* decisions live in `decisions/`.) | — this is the root; nothing outranks it | — |
+| **`decisions/`** | **Engineering decisions for the detector**, one record each (context, decision, consequences, rejected alternatives, evidence) — the "why" behind how `detector/` is built. Only decisions an agent could break or keep re-proposing; see `decisions/README.md`. | Product/strategy reasoning (that's `IDEATION.md`); behavior rules (those go in feature docs) | `IDEATION.md` for product context; tests and code by name |
 | **`ARCHITECTURE.md`** | **Structure only** — the component diagram, what talks to what, local/published/deferred. The "what," not the "why." | Decision reasoning/justification | `IDEATION.md` for why any piece is shaped that way |
 | **`research-log.md`** | The **chronological narrative** — dated entries, never rewritten retroactively, including dead ends and reversed calls (e.g. the SQLite walk-back). A journal, not a current-state snapshot. | A "current answer" stated without its dated trail framing | Can quote `IDEATION.md`'s conclusions *inside* a dated entry, as part of that entry's narrative |
 | **`NORTH-STAR.md`** | The **one-page distilled pitch** — fast orientation, nothing more. | Any new reasoning or decision detail not already in `IDEATION.md` | `IDEATION.md`/`research-log.md` for "why" |
@@ -25,4 +26,4 @@ Before writing an explanation anywhere, ask: **which file owns this kind of info
 
 ## Filenames at a glance
 
-`IDEATION.md` · `ARCHITECTURE.md` · `research-log.md` · `NORTH-STAR.md` · `related-products.md` · `manifest.md` · `CLAUDE.md` · `LESSONS.md`
+`IDEATION.md` · `ARCHITECTURE.md` · `research-log.md` · `NORTH-STAR.md` · `related-products.md` · `manifest.md` · `CLAUDE.md` · `LESSONS.md` · `decisions/`
