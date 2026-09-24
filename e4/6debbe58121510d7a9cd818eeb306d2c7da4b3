@@ -1,0 +1,30 @@
+detector/src/scanner/macos/applications.rs
+  s_fc98096aee2827::t_465b0844bcd9fc 1,5-6,14-17,19-31,34-106
+detector/src/scanner/macos/homebrew_cellar.rs
+  s_fc98096aee2827::t_3236034ba17906 1,6-7,15-22,24-27,29-40,42-50,53-55,59,64-65,77,94,101,109-162
+detector/src/scanner/mod.rs
+  s_fc98096aee2827::t_e1090b6c9e7f25 1,13-14,20-21,30-51,55-58,60-87,107-117,136-168
+.claude/custom_data/sessions/d82d6557-6e6b-47bb-87b4-04dd928def2d.json
+  s_fc98096aee2827::t_0284c56958140e 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e46debbe58121510d7a9cd818eeb306d2c7da4b3",
+  "prompts": {},
+  "humans": {
+    "h_f6c2af0c8aa8ab": {
+      "author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_fc98096aee2827": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d82d6557-6e6b-47bb-87b4-04dd928def2d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
