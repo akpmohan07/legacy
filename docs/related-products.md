@@ -1,18 +1,28 @@
 # Related products & prior art
 
-Every existing tool, product, or project encountered while researching Legacy (formerly "Loadout"), organized by why it came up. None of these are competitors in the direct sense — see the notes on each for how it relates and where the actual gap still is.
+Every existing tool, product, or project encountered while researching Legacy (formerly "Loadout"), organized by why it came up. Most are adjacent, not competitors — but a few personal multi-source inventory tools (`Installory`, `inventory`, `cli-tools`) and several developer-machine security products do overlap directly; see the notes on each for how it relates and where the gap still is.
+
+**Last updated 2026-09-24** (added the direct competitors, developer-first enterprise products, and a traction snapshot). Facts below come from each project's own README/docs or GitHub API, read that day; where only a search-result snippet was seen, the row says so. Star counts are a crude proxy for adoption, not usage.
 
 ## At a glance
 
 | Tool | Summary | How it relates | Our value / the gap |
 |---|---|---|---|
-| [cli-tools](https://github.com/flaviocopes/cli-tools) | macOS app + CLI; detects Homebrew/npm/Cargo tools, reads shell + AI-agent history | Direct architecture reference for detection design | Standalone build, full-spectrum (apps/extensions/hardware too, not CLI-only); adds the sharing layer it lacks |
+| [cli-tools](https://github.com/flaviocopes/cli-tools) | macOS app + CLI; detects Homebrew/npm/Cargo tools, reads shell + AI-agent history (35 stars, created 2026-09-09) | Direct architecture reference for detection design | Standalone build, full-spectrum (apps/extensions/hardware too, not CLI-only); adds the sharing layer it lacks |
 | [StackShare](https://stackshare.io/) | Company tech-stack pages, auto-detect + public sharing | The accidental publish here is the project's origin story; proves auto-detect+share can work | Decentralized, so no company exists to decay; personal, not company-scoped |
-| [awesome-uses](https://github.com/wesbos/awesome-uses) / uses.tech | Manually curated "here's my setup" page list, 9 years old | Proves the itch to declare your setup is real and durable | Auto-updates from real usage; uses.tech is one-time manual entry, never revisited |
+| [awesome-uses](https://github.com/wesbos/awesome-uses) / uses.tech | Manually curated "here's my setup" page list, 9 years old (5,302 stars) | Proves the itch to declare your setup is real and durable | Auto-updates from real usage; uses.tech is one-time manual entry, never revisited |
 | [profile_stack](https://github.com/gleich/profile_stack) | GitHub Action rendering a README tech-stack table from a config file | Same "badge in your README" idea | Badge is auto-detected from a real machine, not manually typed config |
 | [github-readme-tech-stack](https://github.com/0l1v3rr/github-readme-tech-stack) | Similar README tech-stack cards | Same badge category | Same gap — manual config, not detected |
-| Enterprise IT inventory (ManageEngine, Spiceworks, Total Network Inventory, InvGate) | Automated software/hardware inventory across a company fleet | Same detection categories (hardware + software) | Wrong audience (IT admins auditing others) and tone; not personal or shareable-as-identity |
-| [Kolide](https://www.kolide.com/features/device-inventory/properties/device-chrome-extensions) | Device inventory including browser extensions, enterprise fleet | Same extension-detection idea | Same — built for enterprise fleets, not a person |
+| [Installory](https://github.com/william-ricchiuti/Installory) | macOS app inventorying Homebrew, pip, pipx, npm, Cargo, RubyGems, App Store and AI tools; snapshots, baseline compare, install timing; local, exports CSV/Markdown/JSON | **Direct competitor** for personal multi-source inventory + change detection | Manual scans only (no automatic watching mentioned); no timeline-retrospective or sharing layer seen. 0 stars |
+| [inventory](https://github.com/lightisbeauty/inventory) (lightisbeauty) | macOS scanner: `/Applications`, Homebrew, App Store, pip, npm, gems, cargo, conda, Nix, launch agents; save snapshots and diff two | **Direct competitor**, wider source coverage than Legacy today | Manual snapshots; no install timestamps, no automatic watching; PDF/HTML report only. 3 stars |
+| [Helm](https://github.com/jasoncavinder/Helm) | Menu-bar app unifying 15+ package managers into one control plane (snippet only; not read in full) | Adjacent: package management across ecosystems | Answers "update/manage", not "what changed and when" |
+| Enterprise IT inventory (ManageEngine, Spiceworks, Total Network Inventory, InvGate, Lansweeper, NinjaOne, Action1) | Automated software/hardware inventory across a company fleet; Lansweeper keeps history as add/remove actions (an update is a removal plus an addition) | Same detection categories, and a paid, proven market | Audience is IT admins auditing others; not personal or shareable-as-identity |
+| [Kolide](https://www.kolide.com/features/device-inventory/properties/mac-package-install-history) / [Fleet](https://github.com/fleetdm/fleet) / Jamf / Iru (Kandji) / Munki | Fleet device inventory with software history. Kolide's Mac install history stores `installed_at` per record, sources `appstoreagent`, `softwareupdated`, `installer` (Homebrew/npm/cargo not listed for it; separate Homebrew and npm inventories exist). Fleet: MIT core, osquery, GitOps | Same install-history idea, at fleet scale | Central admin consoles for companies. Jamf's history is per computer and not exportable org-wide |
+| [osquery](https://osquery.readthedocs.io/en/stable/deployment/logging/) | Differential logging: each scheduled query logs `added`/`removed` rows versus the last result; `file_events` via FSEvents | Closest mechanism to Legacy's change events | Built for security teams. Its first run reports every row as `added`; Legacy records the first scan as a baseline with no events |
+| [StepSecurity Dev Machine Guard](https://docs.stepsecurity.io/dev-machine-guard) | Apache 2.0 scanner of dev machines: AI agents, MCP servers, IDE extensions, npm/Python/Homebrew packages; macOS/Windows/Linux; runs locally, JSON/HTML output | **Developer-first with an enterprise tier** (see below) | Security purpose. Enterprise-only: dashboard, policy, scheduled scans, historical trends. 177 stars |
+| [SafeDep](https://safedep.io/endpoint-protection/) | Open-source local CLIs (PMG intercepts package installs, VET discovers agents/MCP/extensions) plus a cloud Endpoint Hub with inventory snapshots and install-event timelines | Developer-first with a hosted console | Supply-chain security focus; timeline lives in their hub |
+| [Aikido Device Protection](https://www.aikido.dev/protect/device-protection) | Inventory of packages (npm, PyPI, Cargo/Rust, Homebrew, ...), IDE and browser extensions, AI tools; continuous monitoring; macOS/Windows/Linux; free tier | Developer-machine visibility, commercial | Security purpose; team dashboard, not personal |
+| [Workbrew](https://workbrew.com/homebrew) | Fleet management layer on Homebrew (it sponsors Homebrew): inventory via MDM, package policy, audit trail; Workbrew Free tier | Homebrew-only fleet inventory | Company governance; whether it keeps install history over time is not stated |
 | Fake-desktop portfolio genre ([portfolio-os](https://github.com/DareDev256/portfolio-os), [my-portfolio](https://github.com/Justinianus2001/my-portfolio), [writeup](https://dev.to/dustinbrett/how-i-made-a-desktop-environment-in-the-browser-15oi), [HN post](https://news.ycombinator.com/item?id=27084995)) | Personal portfolio sites styled as a fake OS desktop, draggable windows | The exact UI concept planned for the shareable page | All hand-built with static content — de-risks the rendering technique; wiring it to real detected data is still the open gap |
 | [stashapp/stash](https://github.com/stashapp/stash) | Unrelated, well-known self-hosted adult-content media organizer | Surfaced as a naming collision for "Stash" | Ruled the name out; no functional relation |
 | Memento (various — [example](https://github.com/machawk1/awesome-memento)) | HTTP-caching tool / content aggregator / web-archive CLI | Surfaced as a naming collision for "Memento" | Lesser collision than Stash but still occupied; name demoted |
@@ -47,11 +57,47 @@ Every existing tool, product, or project encountered while researching Legacy (f
 - **[github-readme-tech-stack](https://github.com/0l1v3rr/github-readme-tech-stack)** — similar tech-stack cards for a README.
 - Both solve a sliver of the badge idea, but from manually-typed config, never auto-detected from a real machine — the gap (auto-detected, not manually curated) still holds.
 
-## Enterprise IT/hardware inventory (wrong audience, not a competitor)
+## Personal multi-source inventory (direct competitors; added 2026-09-24)
 
-- **ManageEngine Endpoint Central**, **Spiceworks Inventory**, **Total Network Inventory**, **InvGate** — automated software/hardware inventory across a fleet, for IT admins doing license/compliance audits.
-- **[Kolide](https://www.kolide.com/features/device-inventory/properties/device-chrome-extensions)** — device inventory including browser extensions, same enterprise-fleet audience.
-- All auto-detect similar categories to Legacy but for a company auditing *other people's* machines, never personal, never shareable-as-identity.
+- **[Installory](https://github.com/william-ricchiuti/Installory)** — MIT, macOS app, v1.5.0, 107 commits, 0 stars, created 2026-05-15. Read-only inventory of Homebrew (formulae and casks), pip, pipx, uv tools, npm, Cargo, RubyGems, receipt-bearing App Store apps and AI agent stack. README lists "snapshots, baseline compare with change detection and reinstall scripts", records install timing, exports CSV/Markdown/JSON, "no network, no tracking". Optional provenance from shell history and Claude Code session records, off by default. No automatic watching mentioned.
+- **[inventory](https://github.com/lightisbeauty/inventory)** (lightisbeauty) — GPL-3.0, macOS 12+, Python 3, 3 stars, created 2026-06-24. Covers `/Applications` and `~/Applications`, Homebrew, App Store, pip, npm, gems, cargo, conda/mamba, MacPorts, Fink, Nix, launch agents and system info. Saves snapshots into a library and compares two (added/removed/updated). Manual; no install timestamps; PDF/HTML export; local only.
+- **[cli-tools](https://github.com/flaviocopes/cli-tools)** — see "Direct architectural inspiration" below.
+- Neither of the first two watches automatically, keeps a continuous timeline, or offers a shareable page. Not verified: whether either is planning to.
+
+## Enterprise IT/hardware inventory (different audience and buyer)
+
+- **ManageEngine Endpoint Central**, **Spiceworks Inventory**, **Total Network Inventory**, **InvGate**, **NinjaOne**, **Action1** — automated software/hardware inventory across a fleet, for IT admins doing license/compliance audits.
+- **Lansweeper** — history tracking for scan items; each history row has an Action (added / removed), so an updated program appears as a removal of the old version plus an addition of the new (community/docs snippets; not tested).
+- **[Kolide](https://www.kolide.com/features/device-inventory/properties/mac-package-install-history)** — device inventory including browser extensions and Mac package install history (stored, with `installed_at`; sources `appstoreagent`, `softwareupdated`, `installer`). Separate inventories exist for Homebrew and npm packages; whether those keep history was not checked.
+- **[Fleet](https://github.com/fleetdm/fleet)** — MIT-core open-source device management on osquery, with GitOps, REST API and `fleetctl`; `homebrew_packages`, `npm_packages`, `python_packages` tables. **Jamf** shows per-computer software history between inventory reports, not exportable org-wide (community post). **MunkiReport**'s `installhistory` module is described only as "Apple and 3rd party install history"; the docs do not say how it collects. **Iru (Kandji)** is Apple-only device management.
+- All auto-detect similar categories to Legacy but for a company auditing *other people's* machines, never personal, never shareable-as-identity. This is a paid, proven market, unlike the personal one.
+
+## Developer-first with an enterprise tier (open-core; added 2026-09-24)
+
+- **[StepSecurity Dev Machine Guard](https://docs.stepsecurity.io/dev-machine-guard)** — Apache 2.0, 177 stars, created 2026-03-10. Fully local scan (terminal, `--json`, `--html`) of AI agents, MCP servers, IDE extensions, optional Node packages; macOS/Windows/Linux. "There is no separate closed-source version." Enterprise-only (activated with credentials): central dashboard, policy enforcement and alerting, scheduled automated scans, **historical trends and reporting**.
+- **[SafeDep](https://safedep.io/endpoint-protection/)** — open-source local CLIs (PMG: package-install interception; VET: coding agents, MCP servers, skills, IDE extensions) plus Endpoint Hub (cloud) with inventory snapshots and install-event timelines per machine.
+- **[Aikido Device Protection](https://www.aikido.dev/protect/device-protection)** — packages (npm, PyPI, Maven, NuGet, Go, Ruby, Rust, PHP, Homebrew), IDE and browser extensions, AI tools; "continuous monitoring"; macOS/Windows/Linux (WSL planned Q4 2026); free tier, paid pricing not shown.
+- **[Workbrew](https://workbrew.com/homebrew)** — sponsors Homebrew; fleet Homebrew inventory through MDM (Intune, Jamf, Mosyle, Iru), package policy, audit trail; Workbrew Free tier. Install history over time not stated.
+- Pricing, customers, and real-world quality of these were not checked.
+- Adjacent, checked only at the description level: **Backstage** (software catalog of services, not machines), **Coder** (governed workspaces), **Devbox**/**Nix** (reproducible environments; Nix generations diffable with `nvd`), **mise** (tool versions). None inventories the tools on a developer's own machine.
+
+## Traction snapshot (GitHub API, 2026-09-24)
+
+| Repo | Stars | Created | Last push |
+|---|---|---|---|
+| jdx/mise | 34,236 | 2023-01-09 | 2026-09-24 |
+| fleetdm/fleet | 6,905 | 2020-11-03 | 2026-09-24 |
+| wesbos/awesome-uses | 5,302 | 2017-06-12 | 2026-09-20 |
+| buresdv/Cork | 4,704 | 2022-07-03 | 2026-09-20 |
+| step-security/dev-machine-guard | 177 | 2026-03-10 | 2026-09-23 |
+| mtwn105/YourYearInCode (GitHub Wrapped-style; the `GitHubWrapped` link redirects here) | 106 | 2024-12-14 | 2025-12-26 |
+| gleich/profile_stack | 57 | 2020-07-04 | 2024-06-17 |
+| flaviocopes/cli-tools | 35 | 2026-09-09 | 2026-09-09 |
+| jasoncavinder/Helm | 4 | 2026-02-11 | 2026-09-24 |
+| lightisbeauty/inventory | 3 | 2026-06-24 | 2026-09-04 |
+| william-ricchiuti/Installory | 0 | 2026-05-15 | 2026-09-23 |
+
+Reading these: stars are a weak proxy (young repos, people use tools without starring them, download counts not checked). `cli-tools` gained its stars in 15 days; whether that is due to its author's existing audience was not checked.
 
 ## Simulated-desktop / fake-OS portfolio UI (the rendering genre, not the data)
 

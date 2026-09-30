@@ -281,6 +281,19 @@ What should Legacy (formerly "Loadout") actually be, and which parts — the per
 
 ---
 
+### 2026-09-24 · 16:32–16:35 — Brainstorm only: could a small local "decision model" (Laya) help the detector later?
+
+*Thread: tangent from a web search on two just-released "System 1" decision models, Jev (TypeSafe AI, closed API) and Laya (Convai Innovations, open weights, Apache 2.0). Brainstorm, not a decision — nothing here is locked, planned, or ticketed. Opens into: nothing downstream yet.*
+
+- **What they are:** models that don't generate text — given an input plus typed questions, they return a choice, score, or yes/no with a confidence. Laya is 421M params (ModernBERT-large, English) or 322M (mmBERT-base, multilingual), ~33ms/pass, and has an Apple-only MLX port. Jev is API-only, so it's out on privacy grounds alone (would send detected tools to a third party); only Laya is a candidate.
+- **Possible fits, strongest first:** (1) *identity resolution across scanners* — "Visual Studio Code" app vs `code` CLI vs `visual-studio-code` cask as one tool, a natural typed yes/no, and it becomes a live problem the moment the Homebrew scanner lands; (2) *categorizing the long tail* of tools a curated catalog misses; (3) tool-vs-transitive-dependency, though `brew`'s `installed_on_request` is a better deterministic signal; (4) picking "Wrapped" highlights/persona from fixed options (it can't write the narrative).
+- **Hard boundary:** never use it for privacy gating. Privacy stays allowlist-by-source and deterministic; a model could at most suggest flags inside the local review UI, with a human deciding.
+- **Cautions:** reported zero-shot accuracy is near random (0.362) — good numbers need fine-tuning, and the labels would mostly come from the catalog, so the catalog comes first regardless. Size/runtime is awkward for a Rust CLI (Python-first distribution; MLX is Apple-only, cutting against the multiplatform heuristic; ONNX/candle route unchecked). It's ~a week old and the headline benchmarks are the vendor's own — at least one independent post disputes them.
+- **Leaning:** not v1. If it ever matters, the shape is a small `Classifier`/`Resolver` trait with deterministic rules + catalog as the first implementation, model swappable in later — same "lock behind an interface" pattern as `WorkingStore`.
+- **Why this matters:** parked so it isn't re-derived later. The useful takeaway is the framing (identity resolution as the real candidate use, privacy gating as the excluded one), not the specific model, which may be superseded.
+
+---
+
 ### Open — live edge, as of 2026-09-20 18:53
 
 *Thread: this section is the live edge of the log — always last, always open, rewritten (not appended to) as the thinking moves.*
