@@ -1,0 +1,40 @@
+docs/related-products.md
+  s_fc98096aee2827::t_b29ae53f7c6929 11
+  s_fc98096aee2827::t_7d172b0be85809 13
+  s_fc98096aee2827::t_03373b9869f4a7 16-25
+  s_fc98096aee2827::t_46335fd0aa40e6 3-5
+  s_fc98096aee2827::t_37a0c53a3ee01b 60-98,100
+docs/research-log.md
+  s_9f0855a051fae2::t_f7ec3f93ddec01 284-296
+excalidraw/system.excalidraw
+  s_fc98096aee2827::t_556cb0a0755ea0 81,161,203,302,323,341-342,354,363,379-380,383,462,504,543-544,546,562-563,565-566,577,626,685,759,931,973,1034,1137,1179,1239,1298,1340,1420,1500,1542,1600
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c855dafdc16a90cef5a35ba7ad714c3ecee80740",
+  "prompts": {},
+  "humans": {
+    "h_f6c2af0c8aa8ab": {
+      "author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_9f0855a051fae2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ea2762b1-609e-4f91-9474-0d6b2d3dbb59",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    },
+    "s_fc98096aee2827": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d82d6557-6e6b-47bb-87b4-04dd928def2d",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
