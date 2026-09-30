@@ -129,16 +129,39 @@ fn failed(what: &str, err: ScanError) -> SourceOutcome {
     SourceOutcome::Failed { reason: format!("{what}: {err}") }
 }
 
+/// Scan every source.
 pub fn run(
     store: &mut Store,
     registry: &ScannerRegistry,
+    triggered_by: TriggeredBy,
+) -> Result<RunReport, RunError> {
+    run_matching(store, registry, |_| true, triggered_by)
+}
+
+/// Scan only the named sources; other sources are not probed or touched.
+///
+/// The very first run must cover every source (see `is_first_run`), so the watcher always starts
+/// with `run`, never with this.
+pub fn run_only(
+    store: &mut Store,
+    registry: &ScannerRegistry,
+    sources: &[&str],
+    triggered_by: TriggeredBy,
+) -> Result<RunReport, RunError> {
+    run_matching(store, registry, |name| sources.contains(&name), triggered_by)
+}
+
+fn run_matching(
+    store: &mut Store,
+    registry: &ScannerRegistry,
+    wanted: impl Fn(&str) -> bool,
     triggered_by: TriggeredBy,
 ) -> Result<RunReport, RunError> {
     let first_run = store.is_first_run()?;
     let run_id = store.new_run_id()?;
     let mut sources = Vec::new();
 
-    for SourceProbe { scanner, probe } in registry.discover() {
+    for SourceProbe { scanner, probe } in registry.discover_matching(wanted) {
         let name = scanner.source_name();
         let span = tracing::info_span!("source", source = name);
         let _entered = span.enter();
@@ -408,6 +431,44 @@ mod tests {
             .first(&mut store.conn)
             .unwrap();
         assert!(after.is_some());
+    }
+
+    fn scan_triggers(store: &mut Store) -> Vec<(String, String)> {
+        let rows: Vec<(i32, String)> = scans::table
+            .select((scans::source_id, scans::triggered_by))
+            .order(scans::id.asc())
+            .load(&mut store.conn)
+            .unwrap();
+        let application = store.source_id("application").unwrap();
+        rows.into_iter()
+            .map(|(id, by)| {
+                let name = if id == application { "application" } else { "homebrew-cellar" };
+                (name.to_string(), by)
+            })
+            .collect()
+    }
+
+    #[test]
+    fn run_only_scans_the_named_sources_and_records_the_trigger() {
+        let mut store = Store::in_memory();
+        let registry = ScannerRegistry::from_scanners(vec![
+            Box::new(fake("application", vec![tool("git", "2.1")])),
+            Box::new(fake("homebrew-cellar", vec![tool("gh", "2.8")])),
+        ]);
+        run(&mut store, &registry, TriggeredBy::Startup).unwrap();
+
+        let report = run_only(&mut store, &registry, &["homebrew-cellar"], TriggeredBy::Watcher).unwrap();
+
+        assert_eq!(report.sources.len(), 1);
+        assert_eq!(report.sources[0].source, "homebrew-cellar");
+        assert_eq!(
+            scan_triggers(&mut store),
+            vec![
+                ("application".to_string(), "startup".to_string()),
+                ("homebrew-cellar".to_string(), "startup".to_string()),
+                ("homebrew-cellar".to_string(), "watcher".to_string()),
+            ]
+        );
     }
 
     #[test]

@@ -1,7 +1,7 @@
-use crate::scanner::{DiscoveredTool, Probe, ScanError, Scanner};
+use crate::scanner::{DiscoveredTool, Probe, ScanError, Scanner, Trigger};
 use serde::Deserialize;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 const PREFIXES: [&str; 2] = ["/opt/homebrew", "/usr/local"];
 
@@ -24,6 +24,29 @@ impl Scanner for HomebrewCellarScanner {
         let cellar = find_cellar()?.ok_or(ScanError::SourceMissing)?;
         scan_cellar(&cellar)
     }
+
+    /// Both candidate Cellars; the watcher watches whichever exist.
+    fn trigger(&self) -> Trigger {
+        Trigger::Paths(PREFIXES.iter().map(|prefix| Path::new(prefix).join("Cellar")).collect())
+    }
+
+    fn is_relevant(&self, relative: &Path) -> bool {
+        is_relevant_in_cellar(relative)
+    }
+}
+
+/// Only what the scan reads: a formula folder, a version folder (an upgrade adds one), or a
+/// version's `INSTALL_RECEIPT.json` (written when an install finishes). The files a bottle
+/// unpacks inside a version folder are noise.
+fn is_relevant_in_cellar(relative: &Path) -> bool {
+    let parts: Vec<&str> = relative
+        .components()
+        .filter_map(|part| match part {
+            Component::Normal(name) => name.to_str(),
+            _ => None,
+        })
+        .collect();
+    matches!(parts.as_slice(), [_] | [_, _] | [_, _, "INSTALL_RECEIPT.json"])
 }
 
 fn find_cellar() -> Result<Option<PathBuf>, std::io::Error> {
@@ -151,6 +174,16 @@ mod tests {
         assert_eq!(found[1].identifier, "matheusml/zsh-ai/zsh-ai");
         assert_eq!(found[1].installed_at, None);
         let _ = fs::remove_dir_all(&cellar);
+    }
+
+    #[test]
+    fn only_formula_and_version_folders_and_receipts_are_relevant_changes() {
+        for relevant in ["gh", "gh/2.9.0", "gh/2.9.0/INSTALL_RECEIPT.json"] {
+            assert!(is_relevant_in_cellar(Path::new(relevant)), "{relevant}");
+        }
+        for noise in ["gh/2.9.0/bin/gh", "gh/2.9.0/share/man/man1/gh.1", "gh/2.9.0/README.md", ""] {
+            assert!(!is_relevant_in_cellar(Path::new(noise)), "{noise}");
+        }
     }
 
     #[test]

@@ -2,6 +2,7 @@ use legacy_detector::domain::TriggeredBy;
 use legacy_detector::run;
 use legacy_detector::scanner::ScannerRegistry;
 use legacy_detector::store::Store;
+use legacy_detector::watch::{self, WatchError};
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::EnvFilter;
 
@@ -20,6 +21,19 @@ fn init_logging() {
 fn main() {
     init_logging();
 
+    let command = std::env::args().nth(1);
+    match command.as_deref() {
+        None | Some("scan") => scan(),
+        Some("watch") => watch_mode(),
+        Some(other) => {
+            eprintln!("unknown command {other:?}\nusage: legacy-detector [scan | watch]");
+            std::process::exit(64);
+        }
+    }
+}
+
+/// One manual scan of every source, then exit.
+fn scan() {
     let mut store = Store::open();
     let registry = ScannerRegistry::build();
 
@@ -33,4 +47,21 @@ fn main() {
             std::process::exit(2);
         }
     }
+}
+
+/// Stay running and scan sources as they change. Stop with Ctrl-C.
+fn watch_mode() {
+    let mut store = Store::open();
+    let registry = ScannerRegistry::build();
+
+    let err = match watch::watch(&mut store, &registry) {
+        Ok(()) => return,
+        Err(err) => err,
+    };
+    eprintln!("fatal: {err}");
+    let code = match err {
+        WatchError::Database(_) => 2,
+        _ => 3,
+    };
+    std::process::exit(code);
 }

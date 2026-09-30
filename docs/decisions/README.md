@@ -36,3 +36,4 @@ other cosmetic choices belong in the feature doc, `detector/AGENTS.md`, or `docs
 | [0010](0010-plan-inside-the-write-transaction.md) | Plan inside the write transaction | accepted |
 | [0011](0011-error-policy-and-exit-codes.md) | Error policy, exit codes, and logging | accepted |
 | [0012](0012-automatic-trigger-mechanism.md) | Automatic trigger mechanism | proposed |
+| [0013](0013-publishing-change-events-to-consumers.md) | Publishing recorded change events to consumers | proposed |

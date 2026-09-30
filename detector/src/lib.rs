@@ -5,3 +5,4 @@ pub mod run;
 pub mod scanner;
 pub mod schema;
 pub mod store;
+pub mod watch;

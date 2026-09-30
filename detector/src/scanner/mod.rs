@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[cfg(target_os = "macos")]
 pub mod macos;
@@ -41,6 +41,15 @@ pub struct KnownTool<'a> {
     pub path: Option<&'a Path>,
 }
 
+/// How the watcher learns that a source may have changed.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Trigger {
+    /// Folders to watch. Candidates: only the ones that exist are watched.
+    Paths(Vec<PathBuf>),
+    /// Nothing to watch; the source is scanned only at startup.
+    None,
+}
+
 pub trait Scanner {
     /// Must match a `sources.name` row seeded by the `seed_sources` migration.
     fn source_name(&self) -> &'static str;
@@ -53,6 +62,17 @@ pub trait Scanner {
     /// Called only for tools the scan did not find. Only `Gone` may lead to an uninstall.
     fn confirm_absent(&self, tool: &KnownTool) -> Absence {
         absence_by_path(tool.path)
+    }
+
+    /// What to watch so the watcher can tell when this source changed.
+    fn trigger(&self) -> Trigger {
+        Trigger::None
+    }
+
+    /// Does a change at `relative` (a path inside one of the watched folders, relative to that
+    /// folder) matter to this source? Filters out noise; a `true` only leads to a rescan.
+    fn is_relevant(&self, _relative: &Path) -> bool {
+        true
     }
 }
 
@@ -100,10 +120,20 @@ impl ScannerRegistry {
         Self { scanners }
     }
 
+    pub fn scanners(&self) -> impl Iterator<Item = &dyn Scanner> {
+        self.scanners.iter().map(|scanner| scanner.as_ref())
+    }
+
     /// Source discovery: ask every scanner whether its source is on this machine.
     pub fn discover(&self) -> Vec<SourceProbe<'_>> {
+        self.discover_matching(|_| true)
+    }
+
+    /// Source discovery limited to the sources whose name `wanted` accepts.
+    pub fn discover_matching(&self, wanted: impl Fn(&str) -> bool) -> Vec<SourceProbe<'_>> {
         self.scanners
             .iter()
+            .filter(|scanner| wanted(scanner.source_name()))
             .map(|scanner| SourceProbe {
                 scanner: scanner.as_ref(),
                 probe: scanner.probe(),

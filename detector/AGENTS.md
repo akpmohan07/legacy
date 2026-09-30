@@ -5,11 +5,12 @@ sheet. The reasons live in `../docs/decisions/`, and behavior lives in `../docs/
 `../docs/sources/`. Link to them; do not restate them here.
 
 ## Commands
-- `cargo test`: 61 tests in about a second. They use an in-memory SQLite and fake folders and touch
+- `cargo test`: about 70 tests in about a second. They use an in-memory SQLite and fake folders and touch
   nothing real.
 - `cargo run`: scans **this machine** and writes the **real** database at
   `~/Library/Application Support/Legacy/legacy.db`. `LEGACY_LOG=debug` for details. Exit code 0 ok,
-  1 a source failed, 2 database error (0011).
+  1 a source failed, 2 database error (0011). `cargo run -- watch` stays running and scans a source
+  when its folders change (0012); exit 3 if the file watcher can't start or stops.
 - `diesel migration run|redo|revert`: a development tool. It needs `detector/.env` containing
   `DATABASE_URL=dev.db` (git-ignored) and regenerates `src/schema.rs`.
 
@@ -23,7 +24,8 @@ asking first. Back up the real database before touching it (see 0012 for why).
 | `src/scanner/` | discovery adapters (`Scanner` trait, registry, `macos/`); never touch the database |
 | `src/domain/` | pure rules and value contracts (`plan.rs`, enums, `Changes`); no database, no filesystem |
 | `src/store/` | the only code that talks to SQLite (`Store`, `apply.rs`) |
-| `src/run.rs` | one run: probe, scan, record, report; no SQL |
+| `src/run.rs` | one run (all sources, or `run_only` some): probe, scan, record, report; no SQL |
+| `src/watch.rs` | the `watch` loop: which folders, which source an event belongs to, when to scan; no SQL |
 | `src/identity.rs` | the one-time machine identity |
 | `migrations/`, `src/schema.rs` | SQL history; `schema.rs` is generated, never hand-edited |
 
@@ -39,7 +41,8 @@ asking first. Back up the real database before touching it (see 0012 for why).
 **Add a scanner.** New file under `src/scanner/<os>/`. Implement `source_name` (it must match a seeded
 `sources.name`; if not, add a migration that seeds it), `probe`, and `scan`. `scan` returns an error, never
 an empty success, when it cannot read its source. Override `confirm_absent` if a path check is wrong for
-it. Register it in `ScannerRegistry::build` inside the `cfg` block. Test the core logic against a fake
+it. Override `trigger` (folders to watch) and `is_relevant` (which paths inside them matter) so the watcher
+covers it. Register it in `ScannerRegistry::build` inside the `cfg` block. Test the core logic against a fake
 folder (see the existing scanner tests). Add `../docs/sources/<name>.md`.
 
 **Add a migration.** Follow 0004. `diesel migration generate <name>`, write `up.sql` and `down.sql`, run
@@ -61,5 +64,5 @@ round-trip tests.
 
 ## Known gaps
 `identity.rs` is not gated per OS (it calls `system_profiler`). Failures while opening the store panic
-(exit 101). The exit-2 path has no test. The automatic monitor is not built (0012). Only two sources exist:
+(exit 101). The exit-2 path has no test. The watcher has no quiet window, backstop scan, or login item yet (0012). Only two sources exist:
 `application` and `homebrew-cellar`.

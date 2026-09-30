@@ -1,6 +1,6 @@
-use crate::scanner::{probe_path, DiscoveredTool, Probe, ScanError, Scanner};
+use crate::scanner::{probe_path, DiscoveredTool, Probe, ScanError, Scanner, Trigger};
 use std::fs;
-use std::path::Path;
+use std::path::{Component, Path, PathBuf};
 
 const APPS_DIR: &str = "/Applications";
 
@@ -17,6 +17,14 @@ impl Scanner for ApplicationsScanner {
 
     fn scan(&self) -> Result<Vec<DiscoveredTool>, ScanError> {
         scan_dir(Path::new(APPS_DIR))
+    }
+
+    fn trigger(&self) -> Trigger {
+        Trigger::Paths(vec![PathBuf::from(APPS_DIR)])
+    }
+
+    fn is_relevant(&self, relative: &Path) -> bool {
+        is_relevant_in_apps_dir(relative)
     }
 }
 
@@ -64,6 +72,23 @@ fn scan_dir(apps_dir: &Path) -> Result<Vec<DiscoveredTool>, ScanError> {
     Ok(results)
 }
 
+/// Only what the scan reads: a top-level `X.app` (added, removed, replaced) or its
+/// `X.app/Contents/Info.plist` (updated in place). The rest of a bundle is noise.
+fn is_relevant_in_apps_dir(relative: &Path) -> bool {
+    let parts: Vec<&str> = relative
+        .components()
+        .filter_map(|part| match part {
+            Component::Normal(name) => name.to_str(),
+            _ => None,
+        })
+        .collect();
+    match parts.as_slice() {
+        [bundle] => bundle.ends_with(".app"),
+        [bundle, "Contents", "Info.plist"] => bundle.ends_with(".app"),
+        _ => false,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -97,6 +122,24 @@ mod tests {
         assert_eq!(found[0].version.as_deref(), Some("1.2.3"));
         assert_eq!(found[0].installed_at, None);
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn only_a_bundle_itself_or_its_info_plist_is_a_relevant_change() {
+        for relevant in ["Raycast.app", "Raycast.app/Contents/Info.plist"] {
+            assert!(is_relevant_in_apps_dir(Path::new(relevant)), "{relevant}");
+        }
+        for noise in [
+            "Raycast.app/Contents",
+            "Raycast.app/Contents/MacOS/Raycast",
+            "Raycast.app/Contents/Resources/Info.plist",
+            "Utilities/Terminal.app",
+            "notes.txt",
+            ".DS_Store",
+            "",
+        ] {
+            assert!(!is_relevant_in_apps_dir(Path::new(noise)), "{noise}");
+        }
     }
 
     #[test]

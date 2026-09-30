@@ -79,11 +79,17 @@ impl Status {
     }
 }
 
-/// Why a scan ran. Only `Manual` exists until the other triggers
-/// (watcher, scheduled, startup) are built.
+/// Why a scan ran.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TriggeredBy {
+    /// Someone ran the detector by hand.
     Manual,
+    /// A watched path of the source changed.
+    Watcher,
+    /// The periodic backstop scan.
+    Scheduled,
+    /// The catch-up scan when the watcher starts.
+    Startup,
     /// A value written by a newer version of Legacy that this build doesn't know.
     Unknown(String),
 }
@@ -92,6 +98,9 @@ impl TriggeredBy {
     pub fn as_str(&self) -> &str {
         match self {
             TriggeredBy::Manual => "manual",
+            TriggeredBy::Watcher => "watcher",
+            TriggeredBy::Scheduled => "scheduled",
+            TriggeredBy::Startup => "startup",
             TriggeredBy::Unknown(raw) => raw,
         }
     }
@@ -99,6 +108,9 @@ impl TriggeredBy {
     pub fn parse(raw: &str) -> Self {
         match raw {
             "manual" => TriggeredBy::Manual,
+            "watcher" => TriggeredBy::Watcher,
+            "scheduled" => TriggeredBy::Scheduled,
+            "startup" => TriggeredBy::Startup,
             other => TriggeredBy::Unknown(other.to_string()),
         }
     }
@@ -173,11 +185,22 @@ mod tests {
     }
 
     #[test]
+    fn triggered_by_round_trips_every_known_value() {
+        for by in [
+            TriggeredBy::Manual,
+            TriggeredBy::Watcher,
+            TriggeredBy::Scheduled,
+            TriggeredBy::Startup,
+        ] {
+            assert_eq!(TriggeredBy::parse(by.as_str()), by);
+        }
+    }
+
+    #[test]
     fn triggered_by_keeps_unknown_values_instead_of_failing() {
-        assert_eq!(TriggeredBy::parse("manual"), TriggeredBy::Manual);
-        let future = TriggeredBy::parse("watcher");
-        assert_eq!(future, TriggeredBy::Unknown("watcher".to_string()));
-        assert_eq!(future.as_str(), "watcher");
+        let future = TriggeredBy::parse("hook");
+        assert_eq!(future, TriggeredBy::Unknown("hook".to_string()));
+        assert_eq!(future.as_str(), "hook");
     }
 
     #[test]
