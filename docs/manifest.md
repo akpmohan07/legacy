@@ -24,9 +24,10 @@ Before writing an explanation anywhere, ask: **which file owns this kind of info
 | **`NORTH-STAR.md`** | The **one-page distilled pitch** — fast orientation, nothing more. | Any new reasoning or decision detail not already in `IDEATION.md` | `IDEATION.md`/`research-log.md` for "why" |
 | **`related-products.md`** | External prior art / competitor research, self-contained. | Internal decisions | Rarely needs to reference the others |
 | **`CLAUDE.md`** | **Operational guidance for a Claude Code session** — task-tracking workflow, decision-making heuristic, and an index pointing into every doc below (including this one). Not a content doc itself. | Decision content or reasoning | Points to all of the above |
+| **`README.md`** (repo root) | The **repo's front page on GitHub** — one paragraph on what Legacy is, the live demo, what exists today, and links into the docs. | Decision content or reasoning; any statement that isn't already in another doc | Links to the docs; `NORTH-STAR.md` for the pitch |
 | **`manifest.md`** (this file) | The ownership table itself — what each doc is for. | Decision content | — |
 | **`LESSONS.md`** | General engineering guidelines/rules — reusable across future projects, not specific to Legacy's own decisions. | Legacy-specific decision reasoning (that's `IDEATION.md`'s job) | `IDEATION.md` when a guideline here actually shaped a Legacy decision |
 
 ## Filenames at a glance
 
-`IDEATION.md` · `ARCHITECTURE.md` · `research-log.md` · `NORTH-STAR.md` · `related-products.md` · `manifest.md` · `CLAUDE.md` · `LESSONS.md` · `decisions/` · `features/` · `sources/` (and `detector/AGENTS.md`)
+`IDEATION.md` · `ARCHITECTURE.md` · `research-log.md` · `NORTH-STAR.md` · `related-products.md` · `manifest.md` · `CLAUDE.md` · `README.md` · `LESSONS.md` · `decisions/` · `features/` · `sources/` (and `detector/AGENTS.md`)
