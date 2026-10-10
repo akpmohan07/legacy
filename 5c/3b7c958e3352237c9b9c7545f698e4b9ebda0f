@@ -1,0 +1,22 @@
+docs/manifest.md
+  s_11822aede741f3::t_0b0150a8a77ded 27,33
+README.md
+  s_11822aede741f3::t_ad016fa497dafe 1-4,6-26
+  s_11822aede741f3::t_7c1b93559783f2 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5c3b7c958e3352237c9b9c7545f698e4b9ebda0f",
+  "prompts": {},
+  "sessions": {
+    "s_11822aede741f3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "30c0a2f3-d0cc-4eb4-8158-57ba1d92979f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Mohankumar Muthusamy <akpmohan07@gmail.com>"
+    }
+  }
+}
