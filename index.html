@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Legacy · My Mac</title>
+<style>
+  :root {
+    --menubar-h: 28px;
+    --glass: rgba(246, 246, 248, .72); --glass-strong: rgba(250, 250, 252, .92);
+    --win: #ffffff; --win-side: #f1f1f4; --text: #1d1d1f; --muted: #6e6e73; --line: rgba(0,0,0,.09);
+    --sel: #0a63e0; --sel-soft: rgba(10, 99, 224, .14); --shadow: 0 22px 70px rgba(0,0,0,.35), 0 0 0 .5px rgba(0,0,0,.25);
+    --term-bg: #1e1e1e; --term-fg: #e6e6e6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --glass: rgba(40, 40, 44, .62); --glass-strong: rgba(36, 36, 40, .94);
+      --win: #232326; --win-side: #2b2b2f; --text: #f2f2f4; --muted: #a1a1a6; --line: rgba(255,255,255,.1);
+      --sel: #2f7bf6; --sel-soft: rgba(47, 123, 246, .25); --shadow: 0 22px 70px rgba(0,0,0,.6), 0 0 0 .5px rgba(255,255,255,.15);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body { font: 13px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif; color: var(--text);
+         background: #1b2a4a; user-select: none; -webkit-user-select: none; }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: default; }
+  img { -webkit-user-drag: none; }
+
+  /* ---------- wallpaper: generated, not Apple's ---------- */
+  .wallpaper { position: fixed; inset: 0; background:
+      radial-gradient(1200px 700px at 15% 20%, #ff9a8b 0%, transparent 60%),
+      radial-gradient(1000px 800px at 85% 15%, #6a82fb 0%, transparent 55%),
+      radial-gradient(900px 700px at 70% 90%, #3bd1c4 0%, transparent 55%),
+      radial-gradient(800px 600px at 10% 95%, #b06ab3 0%, transparent 60%),
+      linear-gradient(160deg, #24325f, #10162e); }
+  @media (prefers-color-scheme: dark) { .wallpaper { filter: brightness(.62) saturate(1.1); } }
+
+  /* ---------- menu bar ---------- */
+  .menubar { position: fixed; top: 0; left: 0; right: 0; height: var(--menubar-h); z-index: 9000;
+             display: flex; align-items: center; gap: 2px; padding: 0 10px;
+             background: var(--glass); backdrop-filter: blur(30px) saturate(1.6); -webkit-backdrop-filter: blur(30px) saturate(1.6);
+             border-bottom: .5px solid var(--line); }
+  .mb-item { padding: 2px 9px; border-radius: 5px; font-size: 13px; white-space: nowrap; }
+  .mb-item:hover, .mb-item.open { background: rgba(127,127,127,.22); }
+  .mb-logo { font-size: 15px; font-weight: 700; }
+  .mb-app { font-weight: 700; }
+  .mb-right { margin-left: auto; display: flex; align-items: center; gap: 2px; }
+  .menu { position: fixed; top: calc(var(--menubar-h) + 2px); min-width: 230px; padding: 5px; z-index: 9500;
+          background: var(--glass-strong); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+          border-radius: 9px; box-shadow: var(--shadow); display: none; }
+  .menu.show { display: block; }
+  .menu button { display: flex; justify-content: space-between; width: 100%; text-align: left; padding: 4px 10px; border-radius: 5px; }
+  .menu button:hover { background: var(--sel); color: #fff; }
+  .menu hr { border: 0; border-top: .5px solid var(--line); margin: 5px 6px; }
+  .menu kbd { font: inherit; opacity: .55; }
+
+  /* ---------- "what I see" / "what the public sees" (the switch exists in the local copy only) ---------- */
+  .view { display: flex; align-items: center; gap: 8px; margin-right: 6px; }
+  .view-count { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .view-seg { display: flex; padding: 2px; border-radius: 7px; background: rgba(127,127,127,.22); }
+  .view-seg button { padding: 1px 10px; border-radius: 5px; font-size: 12px; white-space: nowrap; }
+  .view-seg button.on { background: var(--glass-strong); box-shadow: 0 1px 3px rgba(0,0,0,.25); font-weight: 600; }
+
+  /* ---------- desktop icons ---------- */
+  .desk-icons { position: fixed; top: calc(var(--menubar-h) + 14px); right: 18px; display: grid; gap: 14px; z-index: 1; }
+  .desk-icon { width: 88px; display: grid; justify-items: center; gap: 3px; padding: 4px; border-radius: 6px; }
+  .desk-icon img { width: 60px; height: 60px; filter: drop-shadow(0 2px 3px rgba(0,0,0,.3)); }
+  .desk-icon span { color: #fff; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,.7); text-align: center; padding: 0 4px; border-radius: 4px; }
+  .desk-icon.sel img { background: rgba(0,0,0,.18); border-radius: 6px; }
+  .desk-icon.sel span { background: var(--sel); text-shadow: none; }
+
+  /* ---------- dock ---------- */
+  .dock-wrap { position: fixed; bottom: 6px; left: 0; right: 0; display: flex; justify-content: center; z-index: 8000; pointer-events: none; }
+  .dock { pointer-events: auto; display: flex; align-items: flex-end; gap: 4px; padding: 5px 7px; height: 66px; max-width: calc(100vw - 16px);
+          background: var(--glass); backdrop-filter: blur(30px) saturate(1.6); -webkit-backdrop-filter: blur(30px) saturate(1.6);
+          border-radius: 18px; border: .5px solid rgba(255,255,255,.35); box-shadow: 0 10px 40px rgba(0,0,0,.25); }
+  .dock-item { position: relative; display: flex; flex-direction: column; align-items: center; }
+  .dock-item img, .dock-item .tile { width: 52px; height: 52px; transition: width .12s, height .12s, margin .12s; display: block; }
+  .dock-item .tip { position: absolute; bottom: calc(100% + 12px); white-space: nowrap; padding: 4px 10px; border-radius: 6px;
+                    background: var(--glass-strong); box-shadow: 0 2px 12px rgba(0,0,0,.25); display: none; font-size: 13px; }
+  .dock-item:hover .tip { display: block; }
+  .dock-item .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--text); opacity: 0; margin-top: 2px; }
+  .dock-item.running .dot { opacity: .8; }
+  .dock-item.bounce img { animation: bounce .7s ease 1; }
+  @keyframes bounce { 0%,100% { transform: translateY(0); } 30% { transform: translateY(-22px); } 60% { transform: translateY(0); } 78% { transform: translateY(-8px); } }
+  .dock-sep { width: 1px; align-self: stretch; margin: 6px 3px; background: rgba(127,127,127,.4); }
+
+  /* ---------- windows ---------- */
+  .win { position: fixed; display: flex; flex-direction: column; background: var(--win); border-radius: 11px; box-shadow: var(--shadow);
+         overflow: hidden; resize: both; min-width: 300px; min-height: 180px; max-width: 100vw; max-height: calc(100vh - var(--menubar-h)); }
+  .win.inactive { box-shadow: 0 12px 40px rgba(0,0,0,.22), 0 0 0 .5px rgba(0,0,0,.2); }
+  .win.opening { animation: open .18s ease-out; }
+  @keyframes open { from { transform: scale(.94); opacity: 0; } }
+  .titlebar { flex: none; height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-bottom: .5px solid var(--line);
+              background: var(--win-side); }
+  .win.terminal .titlebar { background: #2d2d2d; color: #ccc; border-color: #000; }
+  .lights { display: flex; gap: 8px; }
+  .lights button { width: 12px; height: 12px; border-radius: 50%; border: .5px solid rgba(0,0,0,.18); }
+  .lights .c { background: #ff5f57; } .lights .m { background: #febc2e; } .lights .z { background: #28c840; }
+  .win.inactive .lights button { background: #c8c8cc; }
+  .titlebar .title { flex: 1; text-align: center; font-weight: 600; margin-right: 52px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .win-body { flex: 1; min-height: 0; overflow: auto; }
+
+  /* finder */
+  .finder { display: grid; grid-template-columns: 170px 1fr; height: 100%; }
+  .f-side { background: var(--win-side); padding: 8px 8px 16px; overflow: auto; border-right: .5px solid var(--line); }
+  .f-side h5 { margin: 12px 8px 3px; font-size: 11px; color: var(--muted); font-weight: 600; }
+  .f-side button { display: flex; align-items: center; gap: 7px; width: 100%; padding: 4px 8px; border-radius: 6px; text-align: left; }
+  .f-side button img { width: 16px; height: 16px; }
+  .f-side button.on { background: rgba(127,127,127,.22); }
+  .f-side .n { margin-left: auto; color: var(--muted); font-size: 11px; }
+  .f-main { display: flex; flex-direction: column; min-height: 0; }
+  .f-bar { flex: none; display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: .5px solid var(--line); }
+  .f-bar b { font-size: 14px; }
+  .f-bar input { margin-left: auto; width: 170px; padding: 4px 9px; border-radius: 6px; border: .5px solid var(--line); background: var(--win-side); color: var(--text); font: inherit; }
+  .f-grid { flex: 1; overflow: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); align-content: start; gap: 6px; padding: 14px; }
+  .f-item { display: grid; justify-items: center; gap: 4px; padding: 6px 4px; border-radius: 8px; text-align: center; }
+  .f-item img, .f-item .tile { width: 56px; height: 56px; }
+  .f-item span { font-size: 12px; line-height: 1.25; padding: 1px 4px; border-radius: 4px; word-break: break-word; }
+  .f-item.sel { background: var(--sel-soft); }
+  .f-item.sel span { background: var(--sel); color: #fff; }
+  .f-item.gone { opacity: .5; }
+  .f-item.hid { position: relative; }
+  .f-item.hid::after { content: "\1F512"; position: absolute; top: 2px; left: calc(50% + 16px); font-size: 13px; }
+  .f-status { flex: none; padding: 5px 12px; border-top: .5px solid var(--line); color: var(--muted); font-size: 11px; text-align: center; }
+  .tile { display: grid; place-items: center; border-radius: 22%; color: #fff; font-weight: 700; }
+  .tile.cli { background: linear-gradient(#3a3a3c, #1c1c1e); font-family: ui-monospace, Menlo, monospace; color: #3ee05f; font-size: 15px; border-radius: 14%; }
+
+  /* info */
+  .info { padding: 18px 20px 24px; }
+  .info-head { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
+  .info-head img, .info-head .tile { width: 72px; height: 72px; flex: none; font-size: 26px; }
+  .info-head h2 { margin: 0; font-size: 20px; }
+  .info-head p { margin: 2px 0 0; color: var(--muted); }
+  .info .desc { margin: 0 0 12px; }
+  .info dl { display: grid; grid-template-columns: 110px 1fr; gap: 6px 12px; margin: 0 0 14px; }
+  .info dt { color: var(--muted); text-align: right; }
+  .info dd { margin: 0; word-break: break-word; }
+  .info dd small { color: var(--muted); }
+  .info h4 { margin: 14px 0 6px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .hist { display: flex; gap: 8px; align-items: center; padding: 5px 0; border-bottom: .5px solid var(--line); }
+  .hist i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .hist span:last-child { margin-left: auto; color: var(--muted); }
+  .link { color: var(--sel); text-decoration: none; cursor: pointer; }
+  .pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 99px; background: rgba(40,200,64,.16); color: #1f9d3a; }
+  .pill.no { background: rgba(255,59,48,.14); color: #d70015; }
+
+  /* about this mac */
+  .about { padding: 26px 30px; text-align: center; }
+  .about .laptop { font-size: 64px; line-height: 1; margin-bottom: 8px; }
+  .about h2 { margin: 0; font-size: 24px; }
+  .about .os { color: var(--muted); margin-bottom: 16px; }
+  .about dl { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; text-align: left; margin: 0 auto; max-width: 300px; }
+  .about dt { text-align: right; color: var(--muted); }
+  .about dd { margin: 0; font-weight: 500; }
+
+  /* terminal */
+  .term { background: var(--term-bg); color: var(--term-fg); font: 12.5px/1.45 ui-monospace, "SF Mono", Menlo, monospace;
+          padding: 8px 10px; height: 100%; overflow: auto; user-select: text; -webkit-user-select: text; cursor: text; white-space: pre-wrap; word-break: break-word; }
+  .term .p { color: #5fd7ff; } .term .ok { color: #87d787; } .term .dim { color: #8a8a8a; } .term .err { color: #ff8787; } .term .hl { color: #ffd75f; }
+  .term-line { display: flex; }
+  .term-line input { flex: 1; background: none; border: 0; outline: 0; color: inherit; font: inherit; padding: 0; caret-color: #e6e6e6; }
+
+  /* spotlight */
+  .spot-bg { position: fixed; inset: 0; z-index: 9800; display: none; }
+  .spot-bg.show { display: block; }
+  .spot { position: absolute; top: 18vh; left: 50%; transform: translateX(-50%); width: min(640px, calc(100vw - 32px));
+          background: var(--glass-strong); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
+  .spot input { width: 100%; font-size: 22px; padding: 14px 18px 14px 50px; border: 0; outline: 0; background: transparent; color: var(--text);
+                background-image: radial-gradient(circle at 26px 50%, transparent 7px, var(--muted) 7.5px, var(--muted) 9px, transparent 9.5px); }
+  .spot ul { list-style: none; margin: 0; padding: 0 6px 6px; max-height: 50vh; overflow: auto; border-top: .5px solid var(--line); }
+  .spot ul:empty { display: none; }
+  .spot li { display: flex; gap: 10px; align-items: center; padding: 6px 10px; border-radius: 8px; }
+  .spot li img, .spot li .tile { width: 28px; height: 28px; font-size: 11px; }
+  .spot li small { margin-left: auto; color: var(--muted); }
+  .spot li.on { background: var(--sel); color: #fff; }
+  .spot li.on small { color: rgba(255,255,255,.8); }
+  .spot .head { padding: 8px 10px 2px; font-size: 11px; color: var(--muted); font-weight: 600; }
+
+  /* launchpad */
+  .launchpad { position: fixed; inset: 0; z-index: 8500; display: none; padding: 60px 8vw 120px; overflow: auto;
+               background: rgba(20, 24, 40, .45); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); }
+  .launchpad.show { display: block; animation: lp .2s ease-out; }
+  @keyframes lp { from { opacity: 0; transform: scale(1.06); } }
+  .launchpad input { display: block; margin: 0 auto 36px; width: 240px; padding: 6px 12px; border-radius: 8px; border: .5px solid rgba(255,255,255,.3);
+                     background: rgba(255,255,255,.15); color: #fff; font: inherit; text-align: center; outline: 0; }
+  .lp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 28px 12px; }
+  .lp-grid button { display: grid; justify-items: center; gap: 6px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.6); font-size: 12px; }
+  .lp-grid img { width: 76px; height: 76px; }
+
+  .ctx { position: fixed; z-index: 9600; }
+
+  @media (max-width: 700px) {
+    .desk-icons { display: none; }
+    .mb-menus, .view-count { display: none; }
+    .dock { overflow-x: auto; justify-content: flex-start; }
+    .dock-item img, .dock-item .tile { width: 42px !important; height: 42px !important; margin: 0 !important; }
+    .finder { grid-template-columns: 1fr; }
+    .f-side { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wallpaper"></div>
+
+<div class="menubar">
+  <button class="mb-item mb-logo" data-menu="system" title="Legacy">◆</button>
+  <button class="mb-item mb-app" id="activeApp">Finder</button>
+  <span class="mb-menus">
+    <button class="mb-item" data-menu="file">File</button>
+    <button class="mb-item" data-menu="go">Go</button>
+    <button class="mb-item" data-menu="window">Window</button>
+    <button class="mb-item" data-menu="help">Help</button>
+  </span>
+  <div class="mb-right">
+    <span class="view" id="view"></span>
+    <button class="mb-item" id="spotBtn" title="Spotlight (⌘K)">⌕</button>
+    <span class="mb-item" id="clock"></span>
+  </div>
+</div>
+
+<div class="menu" id="menu-system">
+  <button data-act="about">About This Mac</button><hr>
+  <button data-act="spotlight">Spotlight… <kbd>⌘K</kbd></button>
+  <button data-act="launchpad">Launchpad</button><hr>
+  <button data-act="closeAll">Close All Windows</button>
+</div>
+<div class="menu" id="menu-file">
+  <button data-act="finder">New Finder Window</button>
+  <button data-act="terminal">New Terminal Window</button><hr>
+  <button data-act="closeTop">Close Window <kbd>⌘W</kbd></button>
+</div>
+<div class="menu" id="menu-go">
+  <button data-act="go:apps">Applications</button>
+  <button data-act="go:brew">Homebrew</button>
+  <button data-act="go:recent">Recent Changes</button>
+  <button data-act="go:trash">Trash</button>
+</div>
+<div class="menu" id="menu-window"></div>
+<div class="menu" id="menu-help">
+  <button data-act="help">About this page</button>
+</div>
+
+<div class="desk-icons" id="deskIcons"></div>
+<div id="windows"></div>
+<div class="dock-wrap"><div class="dock" id="dock"></div></div>
+
+<div class="launchpad" id="launchpad"><input id="lpSearch" placeholder="Search" autocomplete="off"><div class="lp-grid" id="lpGrid"></div></div>
+<div class="spot-bg" id="spotBg"><div class="spot"><input id="spotInput" placeholder="Spotlight Search" autocomplete="off"><ul id="spotList"></ul></div></div>
+
+<script src="data.js"></script>
+<script type="module">
+// Where the data comes from, by copy of this page:
+//   desktop-a    data.js holds both views (full and public); the menu bar switches between them
+//   public-site  data.js holds the public view only: hidden items are removed at export
+//   site         data.js names a legacy.db, and the full view is built from it here in the browser
+const FULL = window.LEGACY ?? await loadFromDb(window.LEGACY_DB), PUB = window.LEGACY_PUBLIC;
+
+// The same queries as poc/export.py, run in the browser by sql.js. extras.json carries what the
+// database doesn't hold: icons, the Dock, categories, Homebrew descriptions, Finder dates, Mac model.
+async function loadFromDb(url) {
+  const dir = "vendor/sqljs/";
+  await new Promise((ok, fail) => document.head.append(
+    Object.assign(document.createElement("script"), { src: dir + "sql-wasm.js", onload: ok, onerror: fail })));
+  const [SQL, buf, extra] = await Promise.all([
+    initSqlJs({ locateFile: f => dir + f }),
+    fetch(url).then(r => r.arrayBuffer()),
+    fetch("extras.json").then(r => r.json()),
+  ]);
+  const db = new SQL.Database(new Uint8Array(buf));
+  const rows = sql => { const st = db.prepare(sql), out = []; while (st.step()) out.push(st.getAsObject()); st.free(); return out; };
+  const LABEL = { application: "App", "homebrew-cellar": "Homebrew", "homebrew-cask": "Cask", cargo: "Cargo", "npm-global": "npm", "mac-app-store": "App Store" };
+  const MACOS = { 26: "Tahoe", 15: "Sequoia", 14: "Sonoma", 13: "Ventura", 12: "Monterey" };
+  const change = r => { const v = JSON.parse(r.changes).version || [null, null]; return { type: r.event_type, at: r.occurred_at, from: v[0], to: v[1] }; };
+
+  const history = new Map();
+  for (const r of rows("SELECT tool_id, event_type, occurred_at, changes FROM change_events WHERE tool_id IS NOT NULL ORDER BY id DESC"))
+    history.set(r.tool_id, [...(history.get(r.tool_id) || []), change(r)]);
+
+  const tools = rows(`SELECT t.id, t.name, s.name AS source, t.status, t.installed_at, t.first_seen_at, t.attributes, t.identifier
+                      FROM tools t JOIN sources s ON s.id = t.source_id`).map(r => {
+    const a = JSON.parse(r.attributes || "{}"), source = LABEL[r.source] || r.source;
+    const x = (source === "App" ? extra.apps[a.path] : extra.brew[r.name]) || {};
+    const [date, dateKind] = r.installed_at ? [r.installed_at, "exact"] : x.dateAdded ? [x.dateAdded, "estimated"] : [r.first_seen_at, "first_seen"];
+    return { id: r.id, name: r.name, source, version: a.version, date, dateKind, removed: r.status === "uninstalled", path: a.path,
+      firstSeen: r.first_seen_at, history: history.get(r.id) || [], bundleId: source === "App" ? r.identifier : null, ...x };
+  }).sort((a, b) => b.date.localeCompare(a.date));
+
+  const events = rows(`SELECT e.id, e.tool_id, e.event_type, t.name, e.occurred_at, e.changes
+                       FROM change_events e JOIN tools t ON t.id = e.tool_id ORDER BY e.id DESC LIMIT 50`)
+    .map(r => ({ id: r.id, toolId: r.tool_id, name: r.name, ...change(r) }));
+
+  const hw = JSON.parse(rows("SELECT attributes FROM local_identity LIMIT 1")[0]?.attributes || "{}");
+  const byPath = new Map(tools.map(t => [t.path, t]));
+  db.close();
+  return { tools, events, systemIcons: extra.systemIcons,
+    dock: extra.dock.map(d => ({ ...d, toolId: byPath.get(d.path)?.id ?? null })),
+    mac: { model: extra.model, chip: hw.chip, memory: hw.memory,
+      macos: hw.os_version ? `macOS ${MACOS[hw.os_version.split(".")[0]] || ""} ${hw.os_version}`.replace("  ", " ") : "" } };
+}
+
+const isPublic = FULL.view === "public" || (!!PUB && new URLSearchParams(location.search).get("view") === "public");
+const D = isPublic && PUB ? PUB : FULL;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const src = rel => (window.LEGACY_ASSETS ?? "../data/") + rel;
+const toDate = s => new Date(s.replace(" ", "T") + "Z");
+const fmt = (s, o) => toDate(s).toLocaleString(undefined, o);
+const LONG = { day: "numeric", month: "long", year: "numeric" };
+const DT = { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" };
+
+const tools = D.tools;
+const byId = new Map(tools.map(t => [t.id, t]));
+const apps = tools.filter(t => t.source === "App" && !t.removed).sort((a, b) => a.name.localeCompare(b.name));
+const brew = tools.filter(t => t.source === "Homebrew" && !t.removed).sort((a, b) => a.name.localeCompare(b.name));
+const trash = tools.filter(t => t.removed);
+const SYS = D.systemIcons;
+const host = (D.mac.model || "mac").toLowerCase().replace(/\s+/g, "-");
+
+// ---------- icons ----------
+function iconHTML(t, cls = "") {
+  if (t.icon) return `<img class="${cls}" src="${src(t.icon)}" alt="">`;
+  if (t.source === "Homebrew") return `<span class="tile cli ${cls}">&gt;_</span>`;
+  let h = 0; for (const c of t.name) h = (h * 31 + c.charCodeAt(0)) % 360;
+  return `<span class="tile ${cls}" style="background:hsl(${h} 50% 50%)">${esc(t.name[0])}</span>`;
+}
+const sysImg = (k, cls = "") => `<img class="${cls}" src="${src(SYS[k])}" alt="">`;
+
+// ---------- window manager ----------
+let z = 100, winSeq = 0;
+const wins = new Map(); // id -> { el, title, app }
+function openWindow({ key, title, app, w = 640, h = 440, cls = "", body, onOpen }) {
+  if (key && wins.has(key)) { focusWin(key); return wins.get(key); }
+  const id = key || "w" + (++winSeq);
+  const el = document.createElement("div");
+  el.className = `win opening ${cls}`;
+  const n = wins.size;
+  const vw = innerWidth, vh = innerHeight;
+  w = Math.min(w, vw - 16); h = Math.min(h, vh - 130);
+  el.style.cssText = `width:${w}px;height:${h}px;left:${Math.max(8, (vw - w) / 2 - 80 + n * 26)}px;top:${Math.max(36, 70 + n * 26)}px`;
+  el.innerHTML = `<div class="titlebar"><div class="lights"><button class="c" title="Close"></button><button class="m" title="Minimise"></button><button class="z" title="Zoom"></button></div>
+    <div class="title">${esc(title)}</div></div><div class="win-body"></div>`;
+  el.querySelector(".win-body").append(body);
+  $("windows").append(el);
+  const rec = { el, title, app };
+  wins.set(id, rec);
+  el.addEventListener("pointerdown", () => focusWin(id));
+  el.querySelector(".c").onclick = e => { e.stopPropagation(); closeWin(id); };
+  el.querySelector(".m").onclick = e => { e.stopPropagation(); el.style.display = "none"; refreshChrome(); };
+  el.querySelector(".z").onclick = e => { e.stopPropagation(); toggleZoom(el); };
+  el.querySelector(".titlebar").addEventListener("dblclick", () => toggleZoom(el));
+  drag(el, el.querySelector(".titlebar"));
+  focusWin(id);
+  onOpen?.(el);
+  setTimeout(() => el.classList.remove("opening"), 200);
+  return rec;
+}
+function focusWin(id) {
+  const r = wins.get(id); if (!r) return;
+  r.el.style.display = ""; r.el.style.zIndex = ++z;
+  for (const [k, o] of wins) o.el.classList.toggle("inactive", k !== id);
+  activeId = id; refreshChrome();
+}
+let activeId = null;
+function closeWin(id) { wins.get(id)?.el.remove(); wins.delete(id); if (activeId === id) activeId = [...wins.keys()].pop() || null; if (activeId) focusWin(activeId); refreshChrome(); }
+function toggleZoom(el) {
+  if (el.dataset.prev) { el.style.cssText = el.dataset.prev; delete el.dataset.prev; }
+  else { el.dataset.prev = el.style.cssText; Object.assign(el.style, { left: "0", top: "var(--menubar-h)", width: "100vw", height: "calc(100vh - var(--menubar-h) - 80px)" }); }
+}
+function drag(el, handle) {
+  handle.addEventListener("pointerdown", e => {
+    if (e.target.closest(".lights")) return;
+    const sx = e.clientX - el.offsetLeft, sy = e.clientY - el.offsetTop;
+    handle.setPointerCapture(e.pointerId);
+    const move = ev => { el.style.left = ev.clientX - sx + "px"; el.style.top = Math.max(28, ev.clientY - sy) + "px"; };
+    const up = () => { handle.removeEventListener("pointermove", move); handle.removeEventListener("pointerup", up); };
+    handle.addEventListener("pointermove", move); handle.addEventListener("pointerup", up);
+  });
+}
+function refreshChrome() {
+  const top = wins.get(activeId);
+  $("activeApp").textContent = top?.app || "Finder";
+  const running = new Set([...wins.values()].map(w => w.app));
+  document.querySelectorAll(".dock-item").forEach(d => d.classList.toggle("running", running.has(d.dataset.app)));
+  $("menu-window").innerHTML = wins.size
+    ? [...wins].map(([k, w]) => `<button data-act="focus:${k}">${esc(w.title)}</button>`).join("")
+    : `<button disabled style="opacity:.5">No windows</button>`;
+}
+const el = html => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+
+// ---------- Finder ----------
+const categories = [...new Set(apps.map(a => a.category).filter(Boolean))].sort();
+function locations() {
+  return [
+    ["Favourites", [
+      ["apps", "Applications", SYS.applications, apps],
+      ["brew", "Homebrew", SYS.folder, brew],
+      ["recent", "Recent Changes", SYS.folder, null],
+    ]],
+    ["Categories", categories.map(c => ["cat:" + c, c, SYS.folder, apps.filter(a => a.category === c)])],
+    ["Locations", [["trash", "Trash", SYS.trash, trash]]],
+  ];
+}
+function openFinder(loc = "apps") {
+  const body = el(`<div class="finder"><nav class="f-side"></nav><div class="f-main">
+      <div class="f-bar"><b></b><input type="search" placeholder="Search"></div><div class="f-grid"></div><div class="f-status"></div></div></div>`);
+  let current = loc, q = "";
+  const rec = openWindow({ title: "Finder", app: "Finder", w: 820, h: 520, body });
+  function render() {
+    const all = locations();
+    body.querySelector(".f-side").innerHTML = all.map(([h, items]) => items.length ? `<h5>${h}</h5>` + items.map(([k, label, icon, list]) =>
+      `<button class="${k === current ? "on" : ""}" data-loc="${esc(k)}"><img src="${src(icon)}">${esc(label)}${list ? `<span class="n">${list.length}</span>` : ""}</button>`).join("") : "").join("");
+    const [, label, , list] = all.flatMap(([, i]) => i).find(i => i[0] === current);
+    rec.el.querySelector(".title").textContent = label;
+    body.querySelector(".f-bar b").textContent = label;
+    const grid = body.querySelector(".f-grid");
+    if (!list) { // recent changes as a list
+      const ev = D.events.filter(e => !q || e.name.toLowerCase().includes(q));
+      grid.style.display = "block";
+      grid.innerHTML = ev.map(e => { const t = byId.get(e.toolId) || { name: e.name };
+        return `<div class="f-item" data-tool="${e.toolId}" style="display:flex;justify-items:start;gap:10px;text-align:left">${iconHTML(t).replace('<img', '<img style="width:28px;height:28px"').replace('class="tile', 'style="width:28px;height:28px;font-size:10px" class="tile')}
+          <span><b>${esc(e.name)}</b> ${verb(e)}</span><span style="margin-left:auto;color:var(--muted)">${fmt(e.at, DT)}</span></div>`; }).join("");
+      body.querySelector(".f-status").textContent = `${ev.length} changes`;
+      return;
+    }
+    grid.style.display = "";
+    const items = list.filter(t => !q || t.name.toLowerCase().includes(q));
+    grid.innerHTML = items.map(t => `<div class="f-item${t.removed ? " gone" : ""}${t.public === false ? " hid" : ""}" data-tool="${t.id}" title="${esc(t.name)}">${iconHTML(t)}<span>${esc(t.name)}</span></div>`).join("")
+      || `<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:40px">No items</div>`;
+    const hid = items.filter(t => t.public === false).length;
+    body.querySelector(".f-status").textContent = `${items.length} items${hid ? ` · ${hid} hidden from the public` : ""}`;
+  }
+  body.addEventListener("click", e => {
+    const l = e.target.closest("[data-loc]"); if (l) { current = l.dataset.loc; render(); return; }
+    const it = e.target.closest(".f-item");
+    body.querySelectorAll(".f-item.sel").forEach(x => x.classList.remove("sel"));
+    it?.classList.add("sel");
+  });
+  body.addEventListener("dblclick", e => { const it = e.target.closest("[data-tool]"); if (it) openInfo(byId.get(+it.dataset.tool)); });
+  body.querySelector("input").addEventListener("input", e => { q = e.target.value.trim().toLowerCase(); render(); });
+  rec.goto = l => { current = l; render(); };
+  render();
+  return rec;
+}
+
+// ---------- Get Info ----------
+const color = { installed: "#28c840", updated: "#0a84ff", uninstalled: "#ff453a" };
+function verb(e) {
+  return e.type === "updated" ? `updated ${esc(e.from)} → ${esc(e.to)}` : e.type === "installed" ? `installed${e.to ? " " + esc(e.to) : ""}` : "removed";
+}
+function dateNote(t) {
+  return t.dateKind === "exact" ? `from ${t.source}` : t.dateKind === "estimated" ? "estimated from Finder's Date Added" : "when Legacy first saw it";
+}
+function openInfo(t) {
+  if (!t) return;
+  const kind = t.source === "Homebrew" ? "Homebrew formula" : "Application";
+  const body = el(`<div class="info">
+    <div class="info-head">${iconHTML(t)}<div><h2>${esc(t.name)}</h2>
+      <p>${esc(kind)}${t.version ? " · " + esc(t.version) : ""} &nbsp;<span class="pill ${t.removed ? "no" : ""}">${t.removed ? "Removed" : "Installed"}</span></p></div></div>
+    ${t.desc ? `<p class="desc">${esc(t.desc)}</p>` : ""}
+    <dl>
+      ${t.category ? `<dt>Category</dt><dd>${esc(t.category)}</dd>` : ""}
+      ${t.bundleId ? `<dt>Identifier</dt><dd>${esc(t.bundleId)}</dd>` : ""}
+      <dt>Arrived</dt><dd>${t.dateKind === "exact" ? "" : "~"}${fmt(t.date, LONG)} <small>${esc(dateNote(t))}</small></dd>
+      <dt>First seen</dt><dd>${fmt(t.firstSeen, DT)} <small>by Legacy</small></dd>
+      ${t.path ? `<dt>Where</dt><dd style="font-family:ui-monospace,monospace;font-size:12px">${esc(t.path)}</dd>` : ""}
+      ${t.homepage ? `<dt>Website</dt><dd><a class="link" href="${esc(t.homepage)}" target="_blank" rel="noopener">${esc(t.homepage.replace(/^https?:\/\//, ""))}</a></dd>` : ""}
+      ${t.copyright ? `<dt>Copyright</dt><dd><small>${esc(t.copyright)}</small></dd>` : ""}
+      ${t.public === undefined ? "" : `<dt>Public view</dt><dd>${t.public ? "Shown <small>major version only, no path</small>" : "Hidden <small>only you see this</small>"}</dd>`}
+    </dl>
+    <h4>History</h4>
+    ${t.history.length ? t.history.map(h => `<div class="hist"><i style="background:${color[h.type]}"></i><span>${verb(h)}</span><span>${fmt(h.at, DT)}</span></div>`).join("")
+      : `<div style="color:var(--muted)">No changes since Legacy started watching.</div>`}
+  </div>`);
+  openWindow({ key: "info:" + t.id, title: t.name + " Info", app: t.name, w: 470, h: 520, body });
+}
+function openSystemApp(d) {
+  const body = el(`<div class="info"><div class="info-head"><img src="${src(d.icon)}"><div><h2>${esc(d.name)}</h2><p>Built into macOS</p></div></div>
+    <dl>${d.category ? `<dt>Category</dt><dd>${esc(d.category)}</dd>` : ""}${d.bundleId ? `<dt>Identifier</dt><dd>${esc(d.bundleId)}</dd>` : ""}
+      ${d.path ? `<dt>Where</dt><dd style="font-family:ui-monospace,monospace;font-size:12px">${esc(d.path)}</dd>` : ""}</dl>
+    <p style="color:var(--muted)">It's in this Dock, but Legacy doesn't track apps that ship with macOS yet.</p></div>`);
+  openWindow({ key: "sys:" + d.name, title: d.name, app: d.name, w: 440, h: 300, body });
+}
+
+// ---------- About This Mac ----------
+function openAbout() {
+  const m = D.mac;
+  const body = el(`<div class="about"><div class="laptop">💻</div><h2>${esc(m.model || "Mac")}</h2><div class="os">${esc(m.macos)}</div>
+    <dl><dt>Chip</dt><dd>${esc(m.chip)}</dd>${m.memory ? `<dt>Memory</dt><dd>${esc(m.memory)}</dd>` : ""}
+      <dt>Apps</dt><dd>${apps.length}</dd><dt>Homebrew tools</dt><dd>${brew.length}</dd><dt>Removed</dt><dd>${trash.length}</dd>
+      <dt>Tracked since</dt><dd>${tools.length ? fmt(tools.reduce((a, t) => t.firstSeen < a ? t.firstSeen : a, tools[0].firstSeen), { month: "short", year: "numeric" }) : "—"}</dd></dl></div>`);
+  openWindow({ key: "about", title: "About This Mac", app: "System", w: 380, h: 400, body });
+}
+
+// ---------- Terminal ----------
+function cowsay(text) {
+  const t = text || "moo";
+  const line = "-".repeat(t.length + 2);
+  return ` ${line.replace(/-/g, "_")}\n< ${t} >\n ${line}\n        \\   ^__^\n         \\  (oo)\\_______\n            (__)\\       )\\/\\\n                ||----w |\n                ||     ||`;
+}
+function neofetch() {
+  const m = D.mac;
+  const logo = ["        .:'", "    __ :'__", " .'`  `-'  ``.", ":          .-'", ":         :", " :         `-;", "  `.__.-.__.'"];
+  const info = [`<span class="ok">legacy</span>@<span class="ok">${host}</span>`, "-".repeat(20),
+    m.macos && `<span class="hl">OS</span>: ${esc(m.macos)}`, `<span class="hl">Host</span>: ${esc(m.model)}`, `<span class="hl">Chip</span>: ${esc(m.chip)}`,
+    m.memory && `<span class="hl">Memory</span>: ${esc(m.memory)}`, `<span class="hl">Apps</span>: ${apps.length}`, `<span class="hl">Packages</span>: ${brew.length} (brew)`,
+    `<span class="hl">Shell</span>: zsh (simulated)`].filter(Boolean);
+  return info.map((l, i) => `<span class="ok">${(logo[i] || "").padEnd(16)}</span>${l}`).join("\n");
+}
+const findTool = name => tools.find(t => t.name.toLowerCase() === name.toLowerCase());
+const COMMANDS = {
+  help: () => `Commands you can try:
+  <span class="hl">ls</span> [Applications]     list apps
+  <span class="hl">brew list</span>            Homebrew tools on this Mac
+  <span class="hl">brew info</span> &lt;name&gt;     details for one tool
+  <span class="hl">open</span> &lt;app&gt;           open an app's info window
+  <span class="hl">history</span>              recent changes Legacy recorded
+  <span class="hl">neofetch</span>             this Mac at a glance
+  <span class="hl">cowsay</span> &lt;text&gt;        it's installed here, so it works
+  <span class="hl">whoami</span>, <span class="hl">date</span>, <span class="hl">uname</span>, <span class="hl">echo</span>, <span class="hl">clear</span>`,
+  ls: args => args[0] && !/^\/?applications\/?$/i.test(args[0]) ? `<span class="err">ls: ${esc(args[0])}: No such file or directory</span>`
+    : apps.map(a => esc(a.name + ".app")).join("   "),
+  brew: args => {
+    if (args[0] === "list") return brew.map(b => esc(b.name)).join("   ");
+    if (args[0] === "info" && args[1]) {
+      const t = brew.find(b => b.name === args[1]) || trash.find(b => b.name === args[1] && b.source === "Homebrew");
+      if (!t) return `<span class="err">Error: No available formula with the name "${esc(args[1])}" installed.</span>`;
+      return `<span class="ok">==> ${esc(t.name)}</span>: stable ${esc(t.version || "")}\n${esc(t.desc || "")}\n${esc(t.homepage || "")}\nInstalled ${fmt(t.date, LONG)}${t.removed ? " (since removed)" : ""}`;
+    }
+    return `Usage: brew list | brew info &lt;formula&gt;`;
+  },
+  open: args => {
+    const name = args.join(" ").replace(/^-a\s+/, "").replace(/\.app$/i, "");
+    const t = findTool(name);
+    if (!t) return `<span class="err">The application "${esc(name)}" can't be found.</span>`;
+    openInfo(t); return "";
+  },
+  history: () => D.events.slice(0, 15).map(e => `<span class="dim">${fmt(e.at, DT).padEnd(18)}</span> ${esc(e.name)} ${verb(e)}`).join("\n"),
+  neofetch, fastfetch: neofetch,
+  cowsay: args => esc(cowsay(args.join(" "))),
+  whoami: () => "legacy",
+  date: () => new Date().toString(),
+  uname: args => args.includes("-a") ? `Darwin ${host} (simulated) arm64` : "Darwin",
+  echo: args => esc(args.join(" ")),
+  pwd: () => "/Users/legacy",
+  sudo: () => `<span class="err">Nice try. This Mac is read-only.</span>`,
+  rm: () => `<span class="err">rm: this is a simulation; nothing to delete here.</span>`,
+};
+function openTerminal() {
+  const body = el(`<div class="term"><div class="out"></div><div class="term-line"><span class="prompt"></span><input spellcheck="false" autocomplete="off"></div></div>`);
+  const out = body.querySelector(".out"), input = body.querySelector("input");
+  const prompt = `<span class="ok">legacy@${host}</span> <span class="p">~</span> % `;
+  body.querySelector(".prompt").innerHTML = prompt;
+  const hist = []; let hi = 0;
+  out.innerHTML = `<span class="dim">Last login: ${new Date().toDateString()} on ttys000 — a simulated shell over this Mac's real tools.\nType </span><span class="hl">help</span><span class="dim"> to see what works.</span>\n\n`;
+  function run(line) {
+    out.innerHTML += prompt + esc(line) + "\n";
+    const [cmd, ...args] = line.trim().split(/\s+/);
+    if (!cmd) return;
+    if (cmd === "clear") { out.innerHTML = ""; return; }
+    const known = COMMANDS[cmd];
+    const isTool = findTool(cmd);
+    const res = known ? known(args) : isTool && isTool.source === "Homebrew"
+      ? `<span class="dim">${esc(cmd)} is installed here${isTool.version ? ` (${esc(isTool.version)})` : ""}, but this simulation can only run a few commands. Try </span><span class="hl">brew info ${esc(cmd)}</span>`
+      : `<span class="err">zsh: command not found: ${esc(cmd)}</span>`;
+    if (res) out.innerHTML += res + "\n";
+  }
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") { hist.push(input.value); hi = hist.length; run(input.value); input.value = ""; body.scrollTop = body.scrollHeight; }
+    else if (e.key === "ArrowUp") { if (hi > 0) input.value = hist[--hi]; e.preventDefault(); }
+    else if (e.key === "ArrowDown") { input.value = hi < hist.length - 1 ? hist[++hi] : (hi = hist.length, ""); e.preventDefault(); }
+    else if (e.key === "Tab") { // complete tool / app names
+      e.preventDefault();
+      const parts = input.value.split(" "), last = parts.pop().toLowerCase();
+      const pool = parts.length ? tools.map(t => t.name) : [...Object.keys(COMMANDS), ...brew.map(b => b.name)];
+      const hits = pool.filter(n => n.toLowerCase().startsWith(last));
+      if (hits.length === 1) input.value = [...parts, hits[0]].join(" ");
+      else if (hits.length) out.innerHTML += prompt + esc(input.value) + "\n" + hits.map(esc).join("   ") + "\n";
+    } else if (e.key === "l" && e.ctrlKey) { out.innerHTML = ""; e.preventDefault(); }
+  });
+  body.addEventListener("click", () => { if (!getSelection().toString()) input.focus(); });
+  openWindow({ title: "Terminal — zsh", app: "Terminal", w: 680, h: 420, cls: "terminal", body, onOpen: () => setTimeout(() => input.focus(), 50) });
+  window.__runTerm = run; // for automated checks
+}
+
+// ---------- Dock ----------
+const dockItems = [
+  { app: "Finder", icon: SYS.finder, open: () => openFinder() },
+  ...D.dock.map(d => {
+    const t = d.toolId ? byId.get(d.toolId) : null;
+    const isTerm = /iTerm|Terminal/.test(d.name);
+    return { app: isTerm ? "Terminal" : d.name, label: d.name, icon: d.icon,
+      open: d.name === "Launchpad" ? openLaunchpad : isTerm ? openTerminal : t ? () => openInfo(t) : () => openSystemApp(d) };
+  }),
+  { sep: true },
+  { app: "Trash", icon: SYS.trash, open: () => openFinder("trash") },
+];
+function renderDock() {
+  $("dock").innerHTML = dockItems.map((d, i) => d.sep ? `<div class="dock-sep"></div>`
+    : `<button class="dock-item" data-i="${i}" data-app="${esc(d.app)}"><span class="tip">${esc(d.label || d.app)}</span><img src="${src(d.icon)}" alt="${esc(d.label || d.app)}"><span class="dot"></span></button>`).join("");
+}
+$("dock").addEventListener("click", e => {
+  const b = e.target.closest(".dock-item"); if (!b) return;
+  const d = dockItems[+b.dataset.i];
+  if (d.app !== "Trash" && d.app !== "Launchpad" && ![...wins.values()].some(w => w.app === d.app)) {
+    b.classList.remove("bounce"); void b.offsetWidth; b.classList.add("bounce");
+  }
+  const existing = [...wins].find(([, w]) => w.app === d.app && d.app !== "Finder" && d.app !== "Terminal");
+  existing ? focusWin(existing[0]) : d.open();
+});
+// magnification, like the real Dock
+$("dock").addEventListener("mousemove", e => {
+  document.querySelectorAll(".dock-item img").forEach(img => {
+    const r = img.getBoundingClientRect(), dist = Math.abs(e.clientX - (r.left + r.width / 2));
+    const s = 52 + Math.max(0, 1 - dist / 160) * 30;
+    img.style.width = img.style.height = s + "px";
+  });
+});
+$("dock").addEventListener("mouseleave", () => document.querySelectorAll(".dock-item img").forEach(img => img.style.width = img.style.height = ""));
+
+// ---------- desktop icons ----------
+$("deskIcons").innerHTML = [["apps", "Applications", SYS.applications], ["brew", "Homebrew", SYS.folder], ["about", "About This Mac", SYS.finder]]
+  .map(([k, label, icon]) => `<button class="desk-icon" data-desk="${k}"><img src="${src(icon)}"><span>${label}</span></button>`).join("");
+$("deskIcons").addEventListener("click", e => { document.querySelectorAll(".desk-icon").forEach(d => d.classList.toggle("sel", d === e.target.closest(".desk-icon"))); });
+$("deskIcons").addEventListener("dblclick", e => { const k = e.target.closest("[data-desk]")?.dataset.desk; if (k === "about") openAbout(); else if (k) openFinder(k); });
+
+// ---------- Launchpad ----------
+function openLaunchpad() {
+  const render = q => $("lpGrid").innerHTML = apps.filter(a => !q || a.name.toLowerCase().includes(q))
+    .map(a => `<button data-tool="${a.id}">${iconHTML(a)}<span>${esc(a.name)}</span></button>`).join("");
+  render(""); $("lpSearch").value = ""; $("launchpad").classList.add("show"); $("lpSearch").focus();
+  $("lpSearch").oninput = e => render(e.target.value.trim().toLowerCase());
+}
+$("launchpad").addEventListener("click", e => {
+  const b = e.target.closest("[data-tool]");
+  if (b) { $("launchpad").classList.remove("show"); openInfo(byId.get(+b.dataset.tool)); }
+  else if (e.target === $("launchpad") || e.target === $("lpGrid")) $("launchpad").classList.remove("show");
+});
+
+// ---------- Spotlight ----------
+let spotSel = 0, spotItems = [];
+const ACTIONS = [
+  { name: "About This Mac", kind: "System", run: openAbout, icon: SYS.finder },
+  { name: "Terminal", kind: "Application", run: openTerminal, icon: SYS.terminal },
+  { name: "Finder", kind: "Application", run: () => openFinder(), icon: SYS.finder },
+  { name: "Trash", kind: "Folder", run: () => openFinder("trash"), icon: SYS.trash },
+  { name: "Recent Changes", kind: "Folder", run: () => openFinder("recent"), icon: SYS.folder },
+];
+function openSpotlight() { $("spotBg").classList.add("show"); $("spotInput").value = ""; renderSpot(""); $("spotInput").focus(); }
+function closeSpotlight() { $("spotBg").classList.remove("show"); }
+function renderSpot(q) {
+  q = q.trim().toLowerCase();
+  if (!q) { spotItems = []; $("spotList").innerHTML = ""; return; }
+  const score = n => { n = n.toLowerCase(); return n.startsWith(q) ? 0 : n.includes(q) ? 1 : 9; };
+  const hitT = tools.filter(t => score(t.name) < 9 || (t.desc || "").toLowerCase().includes(q) || (t.category || "").toLowerCase().includes(q))
+    .sort((a, b) => score(a.name) - score(b.name) || a.removed - b.removed).slice(0, 8)
+    .map(t => ({ name: t.name, kind: t.removed ? "Removed" : t.source === "Homebrew" ? "Homebrew" : (t.category || "Application"), t, run: () => openInfo(t) }));
+  const hitA = ACTIONS.filter(a => score(a.name) < 9);
+  spotItems = [...hitA, ...hitT]; spotSel = 0; paintSpot();
+}
+function paintSpot() {
+  $("spotList").innerHTML = spotItems.length ? spotItems.map((it, i) => `<li class="${i === spotSel ? "on" : ""}" data-i="${i}">
+    ${it.t ? iconHTML(it.t) : `<img src="${src(it.icon)}">`}<span>${esc(it.name)}</span><small>${esc(it.kind)}</small></li>`).join("")
+    : `<li><span style="color:var(--muted)">No results</span></li>`;
+}
+$("spotInput").addEventListener("input", e => renderSpot(e.target.value));
+$("spotInput").addEventListener("keydown", e => {
+  if (e.key === "ArrowDown") { spotSel = Math.min(spotSel + 1, spotItems.length - 1); paintSpot(); e.preventDefault(); }
+  else if (e.key === "ArrowUp") { spotSel = Math.max(spotSel - 1, 0); paintSpot(); e.preventDefault(); }
+  else if (e.key === "Enter" && spotItems[spotSel]) { const it = spotItems[spotSel]; closeSpotlight(); it.run(); }
+  else if (e.key === "Escape") closeSpotlight();
+});
+$("spotList").addEventListener("click", e => { const li = e.target.closest("[data-i]"); if (li) { closeSpotlight(); spotItems[+li.dataset.i].run(); } });
+$("spotBg").addEventListener("pointerdown", e => { if (e.target === $("spotBg")) closeSpotlight(); });
+$("spotBtn").onclick = openSpotlight;
+
+// ---------- menus ----------
+let openMenu = null;
+function closeMenus() { document.querySelectorAll(".menu.show").forEach(m => m.classList.remove("show")); document.querySelectorAll(".mb-item.open").forEach(m => m.classList.remove("open")); openMenu = null; }
+document.querySelectorAll("[data-menu]").forEach(b => {
+  const show = () => { closeMenus(); const m = $("menu-" + b.dataset.menu); m.style.left = b.getBoundingClientRect().left + "px"; m.classList.add("show"); b.classList.add("open"); openMenu = b; };
+  b.addEventListener("click", e => { e.stopPropagation(); openMenu === b ? closeMenus() : show(); });
+  b.addEventListener("mouseenter", () => { if (openMenu && openMenu !== b) show(); });
+});
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-act]");
+  if (a) {
+    const act = a.dataset.act; closeMenus();
+    if (act === "about") openAbout();
+    else if (act === "spotlight") openSpotlight();
+    else if (act === "launchpad") openLaunchpad();
+    else if (act === "finder") openFinder();
+    else if (act === "terminal") openTerminal();
+    else if (act === "closeTop") activeId && closeWin(activeId);
+    else if (act === "closeAll") [...wins.keys()].forEach(closeWin);
+    else if (act.startsWith("go:")) { const f = [...wins.values()].find(w => w.goto); f ? (f.goto(act.slice(3)), focusWin([...wins].find(([, w]) => w === f)[0])) : openFinder(act.slice(3)); }
+    else if (act.startsWith("focus:")) focusWin(act.slice(6));
+    else if (act === "help") alert("A simulated desktop of this Mac, built by Legacy from what's really installed. Nothing here touches the real machine."
+      + (isPublic ? "\n\nThis is the public view: only what the owner chose to show, with major versions only." : ""));
+    return;
+  }
+  if (!e.target.closest(".menu")) closeMenus();
+});
+
+// ---------- view switch ----------
+if (PUB) {
+  $("view").innerHTML = `<span class="view-count">${PUB.tools.length} shown · ${FULL.tools.length - PUB.tools.length} hidden</span>
+    <span class="view-seg"><button data-view="" class="${isPublic ? "" : "on"}">What I see</button><button data-view="public" class="${isPublic ? "on" : ""}">What the public sees</button></span>`;
+  $("view").addEventListener("click", e => {
+    const b = e.target.closest("[data-view]");
+    if (b && (b.dataset.view === "public") !== isPublic) location.search = b.dataset.view ? "?view=public" : "";
+  });
+} else if (isPublic) {
+  $("view").innerHTML = `<span class="view-count">Public view</span>`;
+}
+
+// ---------- keyboard + clock ----------
+document.addEventListener("keydown", e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); $("spotBg").classList.contains("show") ? closeSpotlight() : openSpotlight(); }
+  else if (e.key === "Escape") { closeSpotlight(); $("launchpad").classList.remove("show"); closeMenus(); }
+  else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "w" && activeId) { e.preventDefault(); closeWin(activeId); }
+});
+function tick() { $("clock").textContent = new Date().toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }); }
+tick(); setInterval(tick, 15000);
+
+renderDock();
+openFinder();
+</script>
+</body>
+</html>
